@@ -24,8 +24,11 @@ There is no test script/framework configured in this project.
 ## Architecture
 
 - **Stack**: Vue 3 (`<script setup>` SFCs) + TypeScript, Vite 8, Pinia, Tailwind CSS v4 (via `@tailwindcss/vite`) + DaisyUI.
-- **Entry point**: `src/main.ts` creates the app, installs Pinia, and mounts `App.vue` to `#app`. There is no router — `App.vue` renders all markup directly as a single view. `vue-router` remains in `package.json` but is unused; the earlier `src/router/` + `src/views/` (Home/About) setup was removed since the view files it depended on no longer exist.
-- **State**: Pinia stores live under `src/stores/` (e.g. `counter.ts` is the default scaffold store, using the setup-store syntax with `ref`/`computed`).
+- **Front-end only**: there is no backend, no API layer, and no database. Form submissions are validated and built client-side, then logged and displayed — nothing is persisted or sent over the network.
+- **Entry point**: `src/main.ts` creates the app, installs Pinia and the router, and mounts `src/App.vue` to `#app`. `App.vue` is a thin layout shell: `<AppHeader />` plus `<RouterView />`.
+- **Routing**: `src/router/index.ts` (`createWebHistory`) defines `/` → `views/HomeView.vue` (the "Comercial" card grid) and `/leads/novo` → `views/LeadFormView.vue` (lazy-loaded lead registration form), with a catch-all redirect to `/`. The two "Pesquisa" cards on the home screen are intentionally `disabled` until those screens exist.
+- **Directory layout**: `src/components/` (shared UI, e.g. `AppHeader.vue`), `src/views/` (route components), `src/types/` (domain interfaces, e.g. `lead.ts`), `src/constants/` (`defaults.ts` — holds `DEFAULT_ID`, a **temporary placeholder** used as the lead `id` until the real database schema exists; change it freely when testing).
+- **State**: Pinia stores live under `src/stores/` (e.g. `counter.ts` is the default scaffold store, using the setup-store syntax with `ref`/`computed`). Form state is local component state (`ref`), not a store.
 - **Styling**: Tailwind utility classes are used directly in templates (see `App.vue`); global styles are in `src/assets/main.css`/`base.css`. The brand color `#193A4C` (dark blue) is used for headers/accents.
 - **Path alias**: `@` maps to `src/` (configured in both `vite.config.ts` and `tsconfig.app.json`).
 - **TypeScript project layout**: `tsconfig.json` is a root pointer referencing `tsconfig.app.json` (app/browser code, extends `@vue/tsconfig`) and `tsconfig.node.json` (Vite/tooling config, Node types). Type-checking uses `vue-tsc --build`, not plain `tsc`.
