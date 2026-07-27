@@ -3,15 +3,16 @@
 
 <template>
   <div class="min-h-screen bg-slate-50 font-sans pb-12">
-  
+   
+    <!-- cabeçalho -->
   <header class="bg-[#193A4C] text-white pt-3 pb-12 px-4 rounded-b-[2rem] md:rounded-b-none md:pb-3">
     <div class="w-full mx-auto md:flex md:items-center md:gap-3">
       
       <a href="/" class="flex-shrink-0">
-        <img src="./images/goedert-icon.png" alt="Logo Goedert" class="bg-white rounded-lg h-15 w-15 object-contain" />
+        <img src="../images/goedert-icon.png" alt="Logo Goedert" class="bg-white rounded-lg h-12 w-12 object-contain" />
       </a>
       <div>
-        <h1 class="text-2xl md:text-3xl font-bold">GoHub Higiexpo</h1>
+        <h1 class="text-2xl md:text-2xl font-bold">GoHub Higiexpo</h1>
         <p class="text-gray-300 text-sm mt-1 gap-9">Nossa central de atendimento Goedert na palma da sua mão</p>
       </div>
 
