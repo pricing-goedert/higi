@@ -33,3 +33,9 @@ There is no test script/framework configured in this project.
 - **TypeScript project layout**: `tsconfig.json` is a root pointer referencing `tsconfig.app.json` (app/browser code, extends `@vue/tsconfig`) and `tsconfig.node.json` (Vite/tooling config, Node types). Type-checking uses `vue-tsc --build`, not plain `tsc`.
 - **Linting**: dual setup — `oxlint` (config in `.oxlintrc.json`) runs first as a fast linter, then ESLint (`eslint.config.ts`) picks up `eslint-plugin-oxlint` findings plus Vue/TypeScript rules, with Prettier formatting rules disabled via `eslint-config-prettier`.
 - **Content language**: UI copy is in Portuguese (pt-BR) — this is a "GoHub Higiexpo" internal tool for Grupo Goedert.
+
+## Error handling convention
+
+- Async functions that touch IndexedDB or other I/O (e.g. `src/services/db.ts`) wrap their body in `try/catch`, log with `console.error('[modulo.funcao] mensagem:', erro)` — the bracketed prefix identifies exactly which function failed — then re-throw so the caller can still react (e.g. show a message in the UI). Don't catch-and-log the same error at multiple levels of the call stack (it double-logs); let it bubble to the nearest place that either shows a UI message or genuinely needs to react to it.
+- Views that load data on mount (e.g. `src/views/ClientSearch.vue`) catch around the loading calls, `console.error` with a `[ComponentName]`-prefixed message, and set an error `ref` shown in the template — don't let a failed fetch silently leave the UI stuck on a loading state.
+- `src/main.ts` sets `app.config.errorHandler` as a last-resort net for uncaught component/render errors, logging `[Vue] Erro não tratado (<info>): <erro>` — `info` tells you which Vue lifecycle hook/context it came from.

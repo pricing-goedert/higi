@@ -37,6 +37,25 @@ const inputBase =
 const inputNormal = 'border-gray-200 focus:border-[#0baaff]'
 const inputErro = 'border-red-400 focus:border-red-500'
 
+const aplicarMascaraCnpj = (event: Event) => {
+  const input = event.target as HTMLInputElement
+  let valor = input.value.replace(/\D/g, '');
+  valor = valor.replace(/^(\d{2})(\d)/, "$1.$2");
+  valor = valor.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+  valor = valor.replace(/\.(\d{3})(\d)/, ".$1/$2");
+  valor = valor.replace(/(\d{4})(\d)/, "$1-$2");
+  input.value = valor;
+  form.value.cnpj = valor;
+};
+
+const aplicarMascaraCep = (event: Event) => {
+  const input = event.target as HTMLInputElement
+  let valor = input.value.replace(/\D/g, '');
+  valor = valor.replace(/^(\d{5})(\d)/, "$1-$2");
+  input.value = valor;
+  form.value.cep = valor;
+};
+
 function validar(): LeadFormErrors {
   const novos: LeadFormErrors = {}
 
@@ -79,13 +98,13 @@ function onSubmit() {
 </script>
 
 <template>
-  <main class="max-w-3xl mx-auto px-4 -mt-6 md:mt-8 p-7">
+  <main class="max-w-xl mx-auto px-4 -mt-6 md:mt-8 p-7">
     <RouterLink
   to="/"
-  class="flex items-center justify-center w-16 h-12 bg-gray-100 hover:bg-gray-200 text-blue-900 hover:text-blue-700 rounded-lg transition-colors mb-4"
+  class="inline-flex gap-1 items-center justify-center text-blue-900 hover:text-blue-700 rounded-lg transition-colors mb-4"
   title="Voltar"
 >
-  <span class="text-3xl font-semibold">&larr;</span>
+  <span class="text-4xl font-semibold">&larr;</span><p class="-ml-8 font-semibold translate-4">Voltar</p>
 </RouterLink>
 
     <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
@@ -131,7 +150,9 @@ function onSubmit() {
             id="cnpj"
             v-model="form.cnpj"
             type="text"
+            maxlength="18"
             placeholder="00.000.000/0000-00"
+            @input="aplicarMascaraCnpj($event)"
             :class="[inputBase, inputNormal]"
           />
         </div>
@@ -145,6 +166,7 @@ function onSubmit() {
             v-model="form.razaoSocial"
             type="text"
             placeholder="Nome da empresa"
+            maxlenght="150"
             :aria-invalid="Boolean(errors.razaoSocial)"
             :class="[inputBase, errors.razaoSocial ? inputErro : inputNormal]"
           />
@@ -163,6 +185,8 @@ function onSubmit() {
               v-model="form.cep"
               type="text"
               placeholder="00000-000"
+              maxlength="9"
+              @input="aplicarMascaraCep($event)"
               :class="[inputBase, inputNormal]"
             />
           </div>
@@ -173,6 +197,7 @@ function onSubmit() {
               id="contato"
               v-model="form.contato"
               type="text"
+              maxlength="100"
               placeholder="Nome Completo"
               :class="[inputBase, inputNormal]"
             />
@@ -188,6 +213,7 @@ function onSubmit() {
           v-model="form.endereco"
           type="text"
           placeholder="Rua, número, bairro"
+          maxlength="150"
           :class="[inputBase, inputNormal]"
           />
         </div>
@@ -216,6 +242,7 @@ function onSubmit() {
               v-model="form.email"
               type="email"
               placeholder="contato@empresa.com.br"
+              maxlength="100"
               :aria-invalid="Boolean(errors.email)"
               :class="[inputBase, errors.email ? inputErro : inputNormal]"
             />
@@ -232,6 +259,7 @@ function onSubmit() {
             v-model="form.colaborador"
             type="text"
             placeholder="Nome do vendedor/expositor"
+            maxlength="100"
             :class="[inputBase, inputNormal]"
           />
         </div>
@@ -244,6 +272,7 @@ function onSubmit() {
             v-model="form.observacoes"
             rows="4"
             placeholder="Digite suas observações..."
+            maxlength="250"
             :class="[inputBase, inputNormal, 'resize-y']"
           ></textarea>
         </div>

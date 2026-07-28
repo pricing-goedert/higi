@@ -15,6 +15,11 @@ const router = createRouter({
       component: () => import('@/views/LeadFormView.vue'),
     },
     {
+      path: '/clientes/busca',
+      name: 'clientes-busca',
+      component: () => import('@/views/ClientSearch.vue'),
+    },
+    {
       path: '/:pathMatch(.*)*',
       redirect: '/',
     },

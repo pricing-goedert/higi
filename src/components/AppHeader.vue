@@ -3,7 +3,6 @@ import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import goedertIcon from '@/images/goedert-icon.png'
 
-// Apenas o estado do campo; a busca em si ainda não está implementada.
 const busca = ref('')
 </script>
 

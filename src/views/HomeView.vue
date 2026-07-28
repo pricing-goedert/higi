@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
 
-// Cards ainda sem destino: seguem desabilitados até as telas existirem.
 const cardBase =
   'bg-white p-12 rounded-2xl shadow-sm transition-shadow flex flex-col items-center text-center gap-3 group border border-gray-100'
 const iconeBase =
@@ -19,7 +18,6 @@ const iconeBase =
       </h2>
 
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-10">
-        <!-- Card 1 -->
         <button type="button" disabled :class="[cardBase, 'cursor-not-allowed opacity-60']">
           <div :class="iconeBase"></div>
           <span class="text-xs md:text-sm font-semibold text-gray-800">
@@ -27,13 +25,11 @@ const iconeBase =
           </span>
         </button>
 
-        <!-- Card 2 -->
-        <button type="button" disabled :class="[cardBase, 'cursor-not-allowed opacity-60']">
-          <div :class="iconeBase"></div>
+        <RouterLink to="/clientes/busca" :class="[cardBase, 'hover:shadow-md']">
+          <div :class="[iconeBase, 'group-hover:bg-[#193A4C] group-hover:text-white']"></div>
           <span class="text-xs md:text-sm font-semibold text-gray-800">Pesquisa de Cliente</span>
-        </button>
+        </RouterLink>
 
-        <!-- Card 3 -->
         <RouterLink to="/leads/novo" :class="[cardBase, 'hover:shadow-md']">
           <div :class="[iconeBase, 'group-hover:bg-[#193A4C] group-hover:text-white']"></div>
           <span class="text-xs md:text-sm font-semibold text-gray-800">Cadastro de Leads</span>
