@@ -1,9 +1,17 @@
+/** Classificação do lead, selecionada no formulário de cadastro. */
+export type TipoLead = 'revenda' | 'empresa' | 'fornecedor'
+
 /** Campos que o formulário de cadastro de leads controla. */
 export interface LeadFormState {
-  nome: string
-  empresa: string
-  email: string
+  tipoLead: TipoLead
+  cnpj: string
+  razaoSocial: string
+  cep :string
+  contato: string
+  endereco: string
   telefone: string
+  email: string
+  colaborador: string
   observacoes: string
 }
 
