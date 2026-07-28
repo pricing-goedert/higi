@@ -2,16 +2,27 @@
 import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { DEFAULT_ID } from '@/constants/defaults'
-import type { Lead, LeadFormErrors, LeadFormState } from '@/types/lead'
+import type { Lead, LeadFormErrors, LeadFormState, TipoLead } from '@/types/lead'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+const tiposLead: { valor: TipoLead; rotulo: string }[] = [
+  { valor: 'revenda', rotulo: 'Revenda' },
+  { valor: 'empresa', rotulo: 'Empresas' },
+  { valor: 'fornecedor', rotulo: 'Fornecedor' },
+]
+
 function estadoInicial(): LeadFormState {
   return {
-    nome: '',
-    empresa: '',
-    email: '',
+    tipoLead: 'revenda',
+    cnpj: '',
+    razaoSocial: '',
+    cep: '',
+    contato: '',
+    endereco: '',
     telefone: '',
+    email: '',
+    colaborador: '',
     observacoes: '',
   }
 }
@@ -29,8 +40,8 @@ const inputErro = 'border-red-400 focus:border-red-500'
 function validar(): LeadFormErrors {
   const novos: LeadFormErrors = {}
 
-  if (!form.value.nome.trim()) {
-    novos.nome = 'Informe o nome do lead.'
+  if (!form.value.razaoSocial.trim()) {
+    novos.razaoSocial = 'Informe a razão social.'
   }
 
   if (!form.value.email.trim()) {
@@ -70,11 +81,12 @@ function onSubmit() {
 <template>
   <main class="max-w-3xl mx-auto px-4 -mt-6 md:mt-8 p-7">
     <RouterLink
-      to="/"
-      class="inline-flex items-center gap-2 text-xs font-semibold text-gray-500 hover:text-[#193A4C] transition-colors mb-4"
-    >
-      &larr; Voltar
-    </RouterLink>
+  to="/"
+  class="flex items-center justify-center w-16 h-12 bg-gray-100 hover:bg-gray-200 text-blue-900 hover:text-blue-700 rounded-lg transition-colors mb-4"
+  title="Voltar"
+>
+  <span class="text-3xl font-semibold">&larr;</span>
+</RouterLink>
 
     <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
       <h2
@@ -84,34 +96,117 @@ function onSubmit() {
         Cadastro de Leads
       </h2>
 
-      <form class="space-y-5" novalidate @submit.prevent="onSubmit">
+      <form class="space-y-5" validate @submit.prevent="onSubmit">
+
         <div>
-          <label for="nome" class="block text-sm font-semibold text-gray-800 mb-1.5">Nome *</label>
-          <input
-            id="nome"
-            v-model="form.nome"
-            type="text"
-            placeholder="Nome do contato"
-            :aria-invalid="Boolean(errors.nome)"
-            :class="[inputBase, errors.nome ? inputErro : inputNormal]"
-          />
-          <p v-if="errors.nome" class="mt-1.5 text-xs text-red-600">{{ errors.nome }}</p>
+          <label class="block text-sm font-semibold text-gray-800 mb-2">Tipo de Lead *</label>
+          <div
+            role="group"
+            aria-label="Tipo de lead"
+            class="inline-flex w-full rounded-xl bg-slate-100 p-1 gap-1"
+          >
+            <button
+              v-for="opcao in tiposLead"
+              :key="opcao.valor"
+              type="button"
+              :aria-pressed="form.tipoLead === opcao.valor"
+              @click="form.tipoLead = opcao.valor"
+              class="flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#0baaff]/40"
+              :class="
+                form.tipoLead === opcao.valor
+                  ? 'bg-[#193A4C] text-white shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              "
+            >
+              {{ opcao.rotulo }}
+            </button>
+          </div>
         </div>
 
         <div>
-          <label for="empresa" class="block text-sm font-semibold text-gray-800 mb-1.5">
-            Empresa
+          <label for="cnpj" class="block text-sm font-semibold text-gray-800 mb-1.5">
+            CNPJ
           </label>
           <input
-            id="empresa"
-            v-model="form.empresa"
+            id="cnpj"
+            v-model="form.cnpj"
             type="text"
-            placeholder="Nome da empresa"
+            placeholder="00.000.000/0000-00"
             :class="[inputBase, inputNormal]"
           />
         </div>
 
+        <div>
+          <label for="razaoSocial" class="block text-sm font-semibold text-gray-800 mb-1.5">
+            Razão Social*
+          </label>
+          <input
+            id="razaoSocial"
+            v-model="form.razaoSocial"
+            type="text"
+            placeholder="Nome da empresa"
+            :aria-invalid="Boolean(errors.razaoSocial)"
+            :class="[inputBase, errors.razaoSocial ? inputErro : inputNormal]"
+          />
+          <p v-if="errors.razaoSocial" class="mt-1.5 text-xs text-red-600">
+            {{ errors.razaoSocial }}
+          </p>
+        </div>
+
         <div class="grid gap-5 md:grid-cols-2">
+          <div>
+            <label for="CEP" class="block text-sm font-semibold text-gray-800 mb-1.5">
+              CEP
+            </label>
+            <input
+              id="CEP"
+              v-model="form.cep"
+              type="text"
+              placeholder="00000-000"
+              :class="[inputBase, inputNormal]"
+            />
+          </div>
+          
+          <div>
+            <label for="contato" class="block text-sm font-semibold text-gray-800 mb-1.5">Contato</label>
+            <input
+              id="contato"
+              v-model="form.contato"
+              type="text"
+              placeholder="Nome Completo"
+              :class="[inputBase, inputNormal]"
+            />
+          </div>
+        </div>
+        
+        <div>
+          <label for="endereco" class="block text-sm font-semibold text-gray-800">
+            Endereço
+          </label>
+          <input
+          id="endereco"
+          v-model="form.endereco"
+          type="text"
+          placeholder="Rua, número, bairro"
+          :class="[inputBase, inputNormal]"
+          />
+        </div>
+
+        <div class="grid gap-5 md:grid-cols-2">
+          <div>
+            <label for="telefone" class="block text-sm font-semibold text-gray-800 mb-1.5">
+              Telefone *
+            </label>
+            <input
+              id="telefone"
+              v-model="form.telefone"
+              type="tel"
+              placeholder="(00) 00000-0000"
+              :aria-invalid="Boolean(errors.telefone)"
+              :class="[inputBase, errors.telefone ? inputErro : inputNormal]"
+            />
+            <p v-if="errors.telefone" class="mt-1.5 text-xs text-red-600">{{ errors.telefone }}</p>
+          </div>
           <div>
             <label for="email" class="block text-sm font-semibold text-gray-800 mb-1.5">
               E-mail *
@@ -126,23 +221,20 @@ function onSubmit() {
             />
             <p v-if="errors.email" class="mt-1.5 text-xs text-red-600">{{ errors.email }}</p>
           </div>
-
-          <div>
-            <label for="telefone" class="block text-sm font-semibold text-gray-800 mb-1.5">
-              Telefone *
-            </label>
-            <input
-              id="telefone"
-              v-model="form.telefone"
-              type="tel"
-              placeholder="(47) 90000-0000"
-              :aria-invalid="Boolean(errors.telefone)"
-              :class="[inputBase, errors.telefone ? inputErro : inputNormal]"
-            />
-            <p v-if="errors.telefone" class="mt-1.5 text-xs text-red-600">{{ errors.telefone }}</p>
-          </div>
         </div>
 
+        <div>
+          <label for="colaborador" class="block text-sm font-semibold text-gray-800 mb-1.5">
+            Colaborador
+          </label>
+          <input
+            id="colaborador"
+            v-model="form.colaborador"
+            type="text"
+            placeholder="Nome do vendedor/expositor"
+            :class="[inputBase, inputNormal]"
+          />
+        </div>
         <div>
           <label for="observacoes" class="block text-sm font-semibold text-gray-800 mb-1.5">
             Observações
@@ -151,7 +243,7 @@ function onSubmit() {
             id="observacoes"
             v-model="form.observacoes"
             rows="4"
-            placeholder="Detalhes do contato, interesse, próximos passos..."
+            placeholder="Digite suas observações..."
             :class="[inputBase, inputNormal, 'resize-y']"
           ></textarea>
         </div>
