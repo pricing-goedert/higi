@@ -74,3 +74,25 @@ export function correspondeABusca(texto: string, busca: string): boolean {
   if (!busca.trim()) return true
   return norm(texto).includes(norm(busca))
 }
+
+/** First letter of the first word + first letter of the last word, e.g.
+ * "Andrade & Filhos Representações" -> "AR" (matches design-frame's avatars). */
+export function iniciais(nome: string): string {
+  const palavras = nome.trim().split(/\s+/)
+  if (palavras.length === 1) {
+    return palavras[0].slice(0, 2).toUpperCase()
+  }
+  return (palavras[0][0] + palavras[palavras.length - 1][0]).toUpperCase()
+}
+
+/** `agora` defaults to Date.now() but is injectable so this stays testable
+ * without mocking global time. */
+export function tempoRelativo(dataIso: string, agora: number = Date.now()): string {
+  const minutos = Math.floor((agora - new Date(dataIso).getTime()) / 60000)
+  if (minutos < 1) return 'agora mesmo'
+  if (minutos < 60) return `${minutos}min atrás`
+  const horas = Math.floor(minutos / 60)
+  if (horas < 24) return `${horas}h atrás`
+  const dias = Math.floor(horas / 24)
+  return `${dias}d atrás`
+}

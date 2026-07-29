@@ -99,6 +99,11 @@ client-side against synced data:
 - `POST /api/leads` — lead capture, also behind a logged-in session (so
   `capturado_por_id` can be set from the session rather than trusted client
   input).
+- `GET /api/leads` and `GET /api/leads/export.csv` — scoped to the caller's
+  own `capturado_por_id` unless `isAdmin` is set, in which case every lead
+  is returned. This is what both the main app's personal Leads tab and the
+  Admin CMS's read-only Leads tab (all leads) read from — same route, the
+  scope just depends on who's asking.
 - `isAdmin`-gated write endpoints for the CMS (usuarios, clientes, produtos,
   indicações, programação, orientações).
 

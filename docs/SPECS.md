@@ -50,7 +50,10 @@ Bottom tab navigation: **Home**, **Repres.**, **Cliente**, **Leads**.
   endereço, email, observações — optional) and a list of previously captured
   leads with CSV export. The user who captured the lead is recorded
   automatically from the logged-in session (no manual "atendente" field
-  needed anymore).
+  needed anymore, and no such field is shown on this form at all). This
+  list is personal — a logged-in user sees and exports only the leads they
+  captured themselves, not everyone's; admins see every lead through the
+  Admin CMS's read-only Leads tab instead.
 - **Programação** — the event schedule, grouped by day.
 - **Mapa da Feira** — a large zoomable floor-plan image.
 - **Indicações** — a hub screen; currently only "Restaurantes" is active

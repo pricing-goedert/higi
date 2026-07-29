@@ -50,6 +50,7 @@ model Cliente {
   cnpj         String  @unique
   razaoSocial  String  @map("razao_social")
   nomeFantasia String? @map("nome_fantasia")
+  contato      String? // contact person's name at the client company
   telefone     String?
   whatsapp     String?
   email        String?
@@ -95,10 +96,11 @@ model Lead {
 // Catalog: Categoria -> Grupo (optional level, some categorias are flat) ->
 // Tipo -> Produto.
 model Categoria {
-  id     String  @id @default(uuid())
-  nome   String
-  grupos Grupo[]
-  tipos  Tipo[] // populated directly when this categoria has no grupo level
+  id        String  @id @default(uuid())
+  nome      String
+  descricao String?
+  grupos    Grupo[]
+  tipos     Tipo[] // populated directly when this categoria has no grupo level
 
   @@map("categorias")
 }
@@ -144,24 +146,27 @@ model Produto {
 }
 
 model Indicacao {
-  id        String  @id @default(uuid())
-  categoria String // 'restaurante' | 'farmacia_mercado' | 'transporte' | 'passeio'
-  nome      String
-  endereco  String?
-  horario   String?
-  telefone  String?
-  latitude  Float?
-  longitude Float?
-  mapaUrl   String? @map("mapa_url")
+  id              String  @id @default(uuid())
+  categoria       String // 'restaurante' | 'farmacia_mercado' | 'transporte' | 'passeio'
+  subcategoria    String? // e.g. cuisine type for restaurantes ("Italiano", "Fast Food")
+  nome            String
+  endereco        String?
+  horario         String?
+  telefone        String?
+  latitude        Float?
+  longitude       Float?
+  mapaUrl         String? @map("mapa_url")
+  distanciaMetros Int?    @map("distancia_metros") // admin-entered; drives "sorted by distance from the hotel"
 
   @@map("indicacoes")
 }
 
 model Orientacao {
-  id     String            @id @default(uuid())
-  titulo String
-  ordem  Int               @default(0)
-  secoes OrientacaoSecao[]
+  id        String            @id @default(uuid())
+  titulo    String
+  descricao String? // short teaser shown on the topic list, distinct from the detail sections below
+  ordem     Int               @default(0)
+  secoes    OrientacaoSecao[]
 
   @@map("orientacoes")
 }

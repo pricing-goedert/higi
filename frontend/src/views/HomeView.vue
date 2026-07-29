@@ -1,12 +1,118 @@
 <script setup lang="ts">
-import { useAuthStore } from '@/stores/auth'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { Briefcase, Calendar, Info, LayoutGrid, Map, Package, Search, Star, UserPlus } from '@lucide/vue'
+import SectionLabel from '@/components/ui/SectionLabel.vue'
+import MenuCard from '@/components/ui/MenuCard.vue'
+import { somenteDigitos } from '@/lib/format'
 
-const auth = useAuthStore()
+const router = useRouter()
+const buscaGlobal = ref('')
+
+// "routes to client or representative results depending on what's typed"
+// (docs/SPECS.md) — a CNPJ-shaped (mostly numeric) query means client
+// lookup, anything else is treated as a representante name/city search.
+function buscar() {
+  const texto = buscaGlobal.value.trim()
+  if (!texto) return
+  if (somenteDigitos(texto).length >= 4) {
+    router.push({ name: 'clientes-lista', query: { cnpj: texto } })
+  } else {
+    router.push({ name: 'representantes-lista', query: { q: texto } })
+  }
+}
+
+const slides = [
+  { to: { name: 'mapa' }, icon: Map, titulo: 'Mapa da Feira 2026', texto: 'Confira a localização dos estandes' },
+  { to: { name: 'leads' }, icon: UserPlus, titulo: 'Cadastre um Lead', texto: 'Registre novos clientes durante a feira' },
+  { to: { name: 'programacao' }, icon: Calendar, titulo: 'Programação da Feira', texto: 'Palestras e atrações do dia' },
+]
+
+const carrosselRef = ref<HTMLElement | null>(null)
+const slideAtivo = ref(0)
+
+function aoRolar() {
+  const el = carrosselRef.value
+  if (!el || el.clientWidth === 0) return
+  slideAtivo.value = Math.round(el.scrollLeft / el.clientWidth)
+}
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center gap-3 rounded-b-hero bg-primary px-4 py-16 text-white">
-    <p class="text-lg font-semibold">Higiexpo</p>
-    <p v-if="auth.usuario" class="text-sm text-white/70">Olá, {{ auth.usuario.nome }} — home chega na próxima etapa.</p>
+  <div class="rounded-b-hero bg-primary px-4 pb-9 pt-7 text-white">
+    <h1 class="text-[20px] font-bold">GoHub Higiexpo</h1>
+    <p class="mt-1 text-[14px] text-white/75">Nossa central de atendimento Goedert na palma da sua mão</p>
+  </div>
+
+  <form class="-mt-7 px-4" @submit.prevent="buscar">
+    <div class="flex h-14 items-center gap-2.5 rounded-search bg-card px-4 shadow-search">
+      <Search :size="20" class="shrink-0 text-faint" />
+      <input
+        v-model="buscaGlobal"
+        placeholder="Buscar representante, cliente..."
+        class="w-full bg-transparent text-ink outline-none placeholder:text-faint"
+      />
+    </div>
+  </form>
+
+  <div class="px-4">
+    <SectionLabel>Destaques</SectionLabel>
+    <div ref="carrosselRef" class="no-scrollbar flex snap-x snap-mandatory gap-3.5 overflow-x-auto" @scroll="aoRolar">
+      <RouterLink
+        v-for="slide in slides"
+        :key="slide.titulo"
+        :to="slide.to"
+        class="flex w-full shrink-0 snap-start flex-col gap-1.5 rounded-card bg-primary p-5 text-white"
+      >
+        <component :is="slide.icon" :size="28" class="text-white/90" />
+        <h3 class="text-[15.5px] font-semibold">{{ slide.titulo }}</h3>
+        <p class="text-[13px] text-white/75">{{ slide.texto }}</p>
+        <small class="mt-1 text-[11.5px] text-white/55">Toque para abrir</small>
+      </RouterLink>
+    </div>
+    <div class="mt-3 flex justify-center gap-1.5">
+      <div
+        v-for="(slide, i) in slides"
+        :key="slide.titulo"
+        class="h-1.5 w-1.5 rounded-full transition-colors"
+        :class="i === slideAtivo ? 'bg-primary' : 'bg-divider'"
+      />
+    </div>
+
+    <SectionLabel dot-class="bg-comercial">Comercial</SectionLabel>
+    <div class="grid grid-cols-2 gap-4">
+      <MenuCard :to="{ name: 'representantes' }" :icon="Briefcase" icon-class="bg-comercial-soft text-comercial">
+        Pesquisa de<br />Representante
+      </MenuCard>
+      <MenuCard :to="{ name: 'clientes' }" :icon="LayoutGrid" icon-class="bg-comercial-soft text-comercial">
+        Pesquisa de<br />Cliente
+      </MenuCard>
+      <MenuCard :to="{ name: 'leads' }" :icon="UserPlus" icon-class="bg-comercial-soft text-comercial">
+        Cadastro de<br />Leads
+      </MenuCard>
+    </div>
+
+    <SectionLabel dot-class="bg-produtos">Produtos</SectionLabel>
+    <div class="grid grid-cols-2 gap-4">
+      <MenuCard :to="{ name: 'produtos' }" :icon="Package" icon-class="bg-produtos-soft text-produtos" full-width>
+        Consulta de Produtos
+      </MenuCard>
+    </div>
+
+    <SectionLabel dot-class="bg-conteudo">Conteúdo</SectionLabel>
+    <div class="grid grid-cols-2 gap-4 pb-2">
+      <MenuCard :to="{ name: 'programacao' }" :icon="Calendar" icon-class="bg-conteudo-soft text-conteudo">
+        Programação<br />da Feira
+      </MenuCard>
+      <MenuCard :to="{ name: 'mapa' }" :icon="Map" icon-class="bg-conteudo-soft text-conteudo">
+        Mapa da<br />Feira
+      </MenuCard>
+      <MenuCard :to="{ name: 'indicacoes' }" :icon="Star" icon-class="bg-conteudo-soft text-conteudo">
+        Indicações
+      </MenuCard>
+      <MenuCard :to="{ name: 'orientacoes' }" :icon="Info" icon-class="bg-conteudo-soft text-conteudo">
+        Orientações
+      </MenuCard>
+    </div>
   </div>
 </template>

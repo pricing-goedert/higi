@@ -93,6 +93,40 @@ test('lead creation attributes capturadoPorId to the logged-in user, and duplica
   assert.equal(total, 1)
 })
 
+test('GET /api/leads scopes non-admins to their own leads, and shows admins everything', async () => {
+  const agenteAdmin = request.agent(app)
+  await agenteAdmin.post('/api/auth/login').send({ email: emailAdmin, password: senha })
+  const agenteRep = request.agent(app)
+  await agenteRep.post('/api/auth/login').send({ email: emailNaoAdmin, password: senha })
+
+  const leadAdmin = await agenteAdmin.post('/api/leads').send({
+    clientUuid: `${PREFIXO}-uuid-admin`,
+    tipo: 'Revenda',
+    cnpj: `${PREFIXO}-cnpj-admin`,
+    razaoSocial: 'Empresa do Admin',
+    contato: 'Fulano',
+    telefone: '11999999999',
+  })
+  const leadRep = await agenteRep.post('/api/leads').send({
+    clientUuid: `${PREFIXO}-uuid-rep`,
+    tipo: 'Revenda',
+    cnpj: `${PREFIXO}-cnpj-rep`,
+    razaoSocial: 'Empresa do Rep',
+    contato: 'Ciclano',
+    telefone: '11988888888',
+  })
+
+  const listaRep = await agenteRep.get('/api/leads')
+  const idsRep = listaRep.body.map((lead: { id: string }) => lead.id)
+  assert.ok(idsRep.includes(leadRep.body.id))
+  assert.ok(!idsRep.includes(leadAdmin.body.id))
+
+  const listaAdmin = await agenteAdmin.get('/api/leads')
+  const idsAdmin = listaAdmin.body.map((lead: { id: string }) => lead.id)
+  assert.ok(idsAdmin.includes(leadRep.body.id))
+  assert.ok(idsAdmin.includes(leadAdmin.body.id))
+})
+
 test('isAdmin-gated write routes reject a logged-in non-admin user', async () => {
   const agenteRep = request.agent(app)
   await agenteRep.post('/api/auth/login').send({ email: emailNaoAdmin, password: senha })

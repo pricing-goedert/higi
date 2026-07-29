@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { House, Users, Building2, UserPlus } from '@lucide/vue'
+import { House, Briefcase, LayoutGrid, UserPlus } from '@lucide/vue'
 
 const route = useRoute()
 
+// Icon choices mirror design-frame's actual SVGs exactly (verified path-by-path
+// against docs/design-frame/index.html), not a semantic guess at each icon.
 const abas = [
   { nome: 'Home', rota: 'home', icone: House },
-  { nome: 'Repres.', rota: 'representantes', icone: Users },
-  { nome: 'Cliente', rota: 'clientes', icone: Building2 },
+  { nome: 'Repres.', rota: 'representantes', icone: Briefcase },
+  { nome: 'Cliente', rota: 'clientes', icone: LayoutGrid },
   { nome: 'Leads', rota: 'leads', icone: UserPlus },
 ] as const
 

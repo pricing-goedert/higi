@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cnpjValido, mascaraCep, mascaraCnpj, mascaraTelefone, norm, correspondeABusca } from './format'
+import { cnpjValido, iniciais, mascaraCep, mascaraCnpj, mascaraTelefone, norm, correspondeABusca, tempoRelativo } from './format'
 
 describe('cnpjValido', () => {
   it('accepts a checksum-valid CNPJ, formatted or not', () => {
@@ -58,5 +58,30 @@ describe('norm / correspondeABusca', () => {
 
   it('does not match unrelated text', () => {
     expect(correspondeABusca('São Paulo', 'rio de janeiro')).toBe(false)
+  })
+})
+
+describe('iniciais', () => {
+  it('takes the first letter of the first and last word', () => {
+    expect(iniciais('Andrade & Filhos Representações')).toBe('AR')
+    expect(iniciais('Comercial Horizonte Ltda')).toBe('CL')
+  })
+
+  it('falls back to the first two letters for a single word', () => {
+    expect(iniciais('Higiexpo')).toBe('HI')
+  })
+})
+
+describe('tempoRelativo', () => {
+  const agora = new Date('2026-07-29T12:00:00Z').getTime()
+
+  it('reports "agora mesmo" for under a minute', () => {
+    expect(tempoRelativo('2026-07-29T11:59:30Z', agora)).toBe('agora mesmo')
+  })
+
+  it('reports minutes, then hours, then days as the gap grows', () => {
+    expect(tempoRelativo('2026-07-29T11:45:00Z', agora)).toBe('15min atrás')
+    expect(tempoRelativo('2026-07-29T09:00:00Z', agora)).toBe('3h atrás')
+    expect(tempoRelativo('2026-07-27T12:00:00Z', agora)).toBe('2d atrás')
   })
 })

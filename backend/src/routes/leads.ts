@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { Prisma } from '@prisma/client'
 import { prisma } from '../lib/prisma'
-import { requireAuth, requireAdmin } from '../middleware/auth'
+import { requireAuth } from '../middleware/auth'
 
 const router = Router()
 
@@ -45,12 +45,16 @@ router.post('/', requireAuth, async (req, res) => {
   }
 })
 
-router.get('/', requireAuth, requireAdmin, async (_req, res) => {
-  res.json(await prisma.lead.findMany({ orderBy: { createdAt: 'desc' } }))
+// Regular users see only leads they personally captured — admins see every
+// lead (this is also where the Admin CMS's read-only Leads tab reads from).
+router.get('/', requireAuth, async (req, res) => {
+  const where = req.user!.isAdmin ? {} : { capturadoPorId: req.user!.id }
+  res.json(await prisma.lead.findMany({ where, orderBy: { createdAt: 'desc' } }))
 })
 
-router.get('/export.csv', requireAuth, requireAdmin, async (_req, res) => {
-  const leads = await prisma.lead.findMany({ orderBy: { createdAt: 'desc' } })
+router.get('/export.csv', requireAuth, async (req, res) => {
+  const where = req.user!.isAdmin ? {} : { capturadoPorId: req.user!.id }
+  const leads = await prisma.lead.findMany({ where, orderBy: { createdAt: 'desc' } })
   const colunas = [
     'id',
     'clientUuid',

@@ -17,11 +17,16 @@ technical decisions and their reasoning.
   **no JavaScript logic and no backend** on purpose — it exists purely so the
   real rebuild has an exact visual target to implement against. Copy the CSS
   values and markup patterns from it; do not build features inside it.
-- `docs/` — `ARCHITECTURE.md`, `SPECS.md`, `README.md`. This file (`CLAUDE.md`)
-  stays at the repo root by convention (auto-loaded by Claude Code); the rest
-  of the docs live in `docs/`.
-- Everything else (the real app) does not exist yet — it gets built fresh per
-  `docs/ARCHITECTURE.md`.
+- `docs/` — `ARCHITECTURE.md` (stack decisions and why), `SPECS.md`
+  (functional spec), `PLAN.md` (phased build order and done-when criteria),
+  `PROGRESS.md` (running log of what's actually been built and the
+  implementation-level decisions made along the way — read this before
+  `PLAN.md` to see how far the build actually is), `README.md`. This file
+  (`CLAUDE.md`) stays at the repo root by convention (auto-loaded by Claude
+  Code); the rest of the docs live in `docs/`.
+- `frontend/` and `backend/` — the real app, per `docs/ARCHITECTURE.md`.
+  Phases 1-4 of `docs/PLAN.md` are done (see `docs/PROGRESS.md` for specifics);
+  Phase 5 (offline/PWA layer) onward is not built yet.
 
 ## Ground rules for new code
 
