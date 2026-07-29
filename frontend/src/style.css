@@ -1,0 +1,14 @@
+/* Self-hosted (not Google Fonts CDN) so the service worker can precache it
+   for offline use later — see docs/ARCHITECTURE.md's offline-first layer. */
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-bg font-sans text-ink;
+}

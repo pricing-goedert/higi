@@ -1,41 +1,54 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Instructions for AI coding agents (Claude Code or others) working in this repository.
 
-## Commands
+## What this repo is
 
-Run from the repo root:
+The Higiexpo trade-show app for Goedert Group — lets sales reps look up whether a
+client already exists (and which representative/seller owns them), capture new
+leads offline, and browse a product catalog, all under poor venue connectivity.
+See `docs/SPECS.md` for the functional spec and `docs/ARCHITECTURE.md` for the
+technical decisions and their reasoning.
 
-```sh
-npm install          # install deps
-npm run dev           # start Vite dev server
-npm run build         # type-check (vue-tsc) + production build
-npm run preview       # preview the production build
-npm run lint          # oxlint --fix, then eslint --fix --cache
-npm run format        # prettier --write on src/
-```
+## Repo layout (read this before touching anything)
 
-There is no test script/framework configured in this project.
+- `docs/design-frame/` — a static HTML/CSS-only visual reference recreated from the
+  old prototype's design language (colors, cards, buttons, forms, nav). It has
+  **no JavaScript logic and no backend** on purpose — it exists purely so the
+  real rebuild has an exact visual target to implement against. Copy the CSS
+  values and markup patterns from it; do not build features inside it.
+- `docs/` — `ARCHITECTURE.md`, `SPECS.md`, `README.md`. This file (`CLAUDE.md`)
+  stays at the repo root by convention (auto-loaded by Claude Code); the rest
+  of the docs live in `docs/`.
+- Everything else (the real app) does not exist yet — it gets built fresh per
+  `docs/ARCHITECTURE.md`.
 
-### Known install issue
+## Ground rules for new code
 
-`package.json` currently pins `oxlint@~1.74.0` while `eslint-plugin-oxlint@~1.73.0` peer-depends on `oxlint@~1.73.0`, so a plain `npm install` fails with `ERESOLVE`. Use `npm install --legacy-peer-deps`, or align the two version ranges in `package.json`, if you hit this.
+- Frontend: Vite + TypeScript + Vue 3 (Vue Router + Pinia) + Tailwind. No
+  other frontend framework.
+- Backend: a small Node.js REST API, containerized with Docker. Keep it
+  boring — bulk read endpoints + a leads endpoint + admin-auth-gated write
+  endpoints. No cloud-proprietary managed services (no Azure Functions
+  Database Connections, no Cosmos DB, no Firebase) — the whole point is a
+  portable stack that runs in any container host.
+- Database: PostgreSQL. Object storage: S3-compatible (Azure Blob Storage,
+  AWS S3, or MinIO — don't hardcode one).
+- Auth: custom JWT + bcrypt in the Node API. No cloud-managed auth service.
+- Offline: Dexie.js over IndexedDB for the synced local dataset + a leads
+  outbox; `vite-plugin-pwa` for the service worker. Don't hand-roll a service
+  worker or an IndexedDB wrapper from scratch.
+- Fix the data model issue the old prototype had: a client's linked
+  representative must be a real foreign key (`representante_id`), not a
+  string name match.
+- Keep things as simple as possible — this app is built and maintained by a
+  small, non-dedicated team under a hard trade-show deadline. Prefer the
+  boring, well-documented option over the clever one.
 
-## Architecture
+## Before making architectural changes
 
-- **Stack**: Vue 3 (`<script setup>` SFCs) + TypeScript, Vite 8, Pinia, Tailwind CSS v4 (via `@tailwindcss/vite`) + DaisyUI..
-- **Entry point**: `src/main.ts` creates the app, installs Pinia and the router, and mounts `src/App.vue` to `#app`. `App.vue` is a thin layout shell: `<AppHeader />` plus `<RouterView />`.
-- **Routing**: `src/router/index.ts` (`createWebHistory`) defines `/` → `views/HomeView.vue` (the "Comercial" card grid) and `/leads/novo` → `views/LeadFormView.vue` (lazy-loaded lead registration form), with a catch-all redirect to `/`. The two "Pesquisa" cards on the home screen are intentionally `disabled` until those screens exist.
-- **Directory layout**: `src/components/` (shared UI, e.g. `AppHeader.vue`), `src/views/` (route components), `src/types/` (domain interfaces, e.g. `lead.ts`), `src/constants/` (`defaults.ts` — holds `DEFAULT_ID`, a **temporary placeholder** used as the lead `id` until the real database schema exists; change it freely when testing).
-- **State**: Pinia stores live under `src/stores/` (e.g. `counter.ts` is the default scaffold store, using the setup-store syntax with `ref`/`computed`). Form state is local component state (`ref`), not a store.
-- **Styling**: Tailwind utility classes are used directly in templates (see `App.vue`); global styles are in `src/assets/main.css`/`base.css`. The brand color `#193A4C` (dark blue) is used for headers/accents.
-- **Path alias**: `@` maps to `src/` (configured in both `vite.config.ts` and `tsconfig.app.json`).
-- **TypeScript project layout**: `tsconfig.json` is a root pointer referencing `tsconfig.app.json` (app/browser code, extends `@vue/tsconfig`) and `tsconfig.node.json` (Vite/tooling config, Node types). Type-checking uses `vue-tsc --build`, not plain `tsc`.
-- **Linting**: dual setup — `oxlint` (config in `.oxlintrc.json`) runs first as a fast linter, then ESLint (`eslint.config.ts`) picks up `eslint-plugin-oxlint` findings plus Vue/TypeScript rules, with Prettier formatting rules disabled via `eslint-config-prettier`.
-- **Content language**: UI copy is in Portuguese (pt-BR) — this is a "GoHub Higiexpo" internal tool for Grupo Goedert.
-
-## Error handling convention
-
-- Async functions that touch IndexedDB or other I/O (e.g. `src/services/db.ts`) wrap their body in `try/catch`, log with `console.error('[modulo.funcao] mensagem:', erro)` — the bracketed prefix identifies exactly which function failed — then re-throw so the caller can still react (e.g. show a message in the UI). Don't catch-and-log the same error at multiple levels of the call stack (it double-logs); let it bubble to the nearest place that either shows a UI message or genuinely needs to react to it.
-- Views that load data on mount (e.g. `src/views/ClientSearch.vue`) catch around the loading calls, `console.error` with a `[ComponentName]`-prefixed message, and set an error `ref` shown in the template — don't let a failed fetch silently leave the UI stuck on a loading state.
-- `src/main.ts` sets `app.config.errorHandler` as a last-resort net for uncaught component/render errors, logging `[Vue] Erro não tratado (<info>): <erro>` — `info` tells you which Vue lifecycle hook/context it came from.
+Read `docs/ARCHITECTURE.md` for the *why* behind each stack choice — several were
+deliberately chosen over more "modern" alternatives (e.g. plain Postgres over
+Cosmos DB, custom JWT over a managed auth service) specifically for
+portability. Don't reintroduce cloud-specific services without checking with
+whoever owns this decision.

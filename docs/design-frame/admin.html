@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — GoHub Higiexpo (design frame)</title>
+<link rel="icon" type="image/png" href="assets/goedert-icon.png">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --primary: #143C52; --primary-soft: #E7EEF3; --bg: #F8FAFC; --card: #FFFFFF;
+  --border: #E7ECF1; --text: #1E293B; --muted: #64748B; --danger: #EF4444; --success: #22C55E;
+}
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+.topbar { background: var(--primary); color: #fff; padding: 16px 28px; display: flex; align-items: center; gap: 14px; }
+.topbar img { height: 34px; width: 34px; border-radius: 8px; background: #fff; padding: 3px; }
+.topbar h1 { font-size: 1.05rem; font-weight: 700; }
+.topbar h1 span { opacity: .6; font-weight: 400; }
+.topbar .who { margin-left: auto; font-size: .8rem; opacity: .75; }
+.topbar a { color: #fff; opacity: .75; font-size: .8rem; margin-left: 14px; text-decoration: none; }
+.tabs { display: flex; gap: 6px; padding: 14px 28px 0; background: var(--card); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.tab { border: none; background: none; cursor: pointer; padding: 10px 18px; font-size: .9rem; font-weight: 600; color: var(--muted); border-radius: 10px 10px 0 0; border-bottom: 3px solid transparent; text-decoration: none; display: inline-block; }
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); background: var(--primary-soft); }
+.wrap { padding: 24px 28px; max-width: 1200px; margin: 0 auto; }
+.actions { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.actions .count { color: var(--muted); font-size: .85rem; }
+.spacer { flex: 1; }
+.btn { border: none; cursor: pointer; border-radius: 10px; font-weight: 600; padding: 10px 18px; font-size: .85rem; text-decoration: none; display: inline-block; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-outline { background: #fff; color: var(--primary); border: 1.5px solid var(--primary); }
+.btn-sm { padding: 5px 10px; font-size: .75rem; border-radius: 8px; }
+.btn-danger { background: #FEE2E2; color: var(--danger); }
+table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 14px; overflow: hidden; box-shadow: 0 4px 18px rgba(0,0,0,.05); }
+th { text-align: left; font-size: .7rem; letter-spacing: .8px; text-transform: uppercase; color: var(--muted); padding: 12px 14px; background: #F1F5F9; }
+td { padding: 11px 14px; font-size: .85rem; border-top: 1px solid var(--border); vertical-align: top; }
+td.acts { white-space: nowrap; text-align: right; }
+.chip { display: inline-block; background: var(--primary-soft); color: var(--primary); border-radius: 8px; padding: 2px 8px; font-size: .72rem; font-weight: 600; }
+.gate { display: flex; align-items: center; justify-content: center; min-height: 70vh; color: var(--muted); text-align: center; padding: 20px; }
+</style>
+</head>
+<body>
+<div class="topbar"><img src="assets/goedert-icon.png" alt=""><h1>GoHub Higiexpo <span>&middot; Gestao de Conteudo do App</span></h1>
+<span class="who">Franciele (admin)</span><a href="index.html">&larr; Voltar ao app</a></div>
+<div class="tabs"><a class="tab" href="admin.html">Representantes</a><a class="tab active" href="admin.html">Clientes</a><a class="tab" href="admin.html">Indicacoes</a><a class="tab" href="admin.html">Programacao</a><a class="tab" href="admin.html">Produtos</a><a class="tab" href="admin.html">Leads</a></div>
+<div class="wrap">
+  <div class="actions"><span class="count">2 clientes</span><span class="spacer"></span>
+  <a class="btn btn-primary" href="#">+ Novo</a></div>
+  <table>
+    <thead><tr><th>Razao Social</th><th>CNPJ</th><th>Representante</th><th>Telefone</th><th></th></tr></thead>
+    <tbody><tr><td>Comercial Horizonte Ltda</td><td>11.222.333/0001-81</td><td>Andrade & Filhos Representações</td><td>(47) 3333-0000</td><td class="acts"><a class="btn btn-outline btn-sm" href="#">Editar</a> <a class="btn btn-danger btn-sm" href="#">Excluir</a></td></tr><tr><td>Distribuidora Águia Norte S.A.</td><td>45.332.187/0001-69</td><td>Representações Silva Ltda</td><td>(47) 3444-5566</td><td class="acts"><a class="btn btn-outline btn-sm" href="#">Editar</a> <a class="btn btn-danger btn-sm" href="#">Excluir</a></td></tr></tbody>
+  </table>
+</div>
+</body>
+</html>

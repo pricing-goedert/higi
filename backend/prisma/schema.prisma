@@ -1,0 +1,189 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Every person who can log into the app — Gerentes, Representantes, and
+// other staff — in one flat, self-referencing table rather than separate
+// tables per role (see docs/ARCHITECTURE.md's Auth section). `superiorId`
+// points at another row in this same table: a Representante's superior is
+// their Gerente, and a team member's superior is the Representante they
+// work under — the same column covers both hierarchy levels. Access inside
+// the app itself never differs by role; `isAdmin` only gates the CMS.
+model Usuario {
+  id           String  @id @default(uuid())
+  nome         String
+  email        String  @unique
+  passwordHash String  @map("password_hash")
+  isAdmin      Boolean @default(false) @map("is_admin")
+
+  superiorId   String?   @map("superior_id")
+  superior     Usuario?  @relation("Hierarquia", fields: [superiorId], references: [id])
+  subordinados Usuario[] @relation("Hierarquia")
+
+  // Search/contact fields for the Representantes screen — nullable since
+  // not every Usuario is a field rep with all of these filled in.
+  cnpj              String? @unique
+  tipoRepresentante String? @map("tipo_representante") // 'nacional' | 'exportacao'
+  cidade            String?
+  uf                String?
+  pais              String?
+  telefone          String?
+  whatsapp          String?
+  endereco          String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  clientesAtendidos Cliente[] @relation("RepresentanteDoCliente")
+  leadsCapturados   Lead[]    @relation("CapturadoPor")
+
+  @@map("usuarios")
+}
+
+model Cliente {
+  id           String  @id @default(uuid())
+  cnpj         String  @unique
+  razaoSocial  String  @map("razao_social")
+  nomeFantasia String? @map("nome_fantasia")
+  telefone     String?
+  whatsapp     String?
+  email        String?
+  endereco     String?
+  cidade       String?
+  uf           String?
+
+  representanteId String?  @map("representante_id")
+  representante   Usuario? @relation("RepresentanteDoCliente", fields: [representanteId], references: [id])
+
+  leads Lead[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("clientes")
+}
+
+model Lead {
+  id          String  @id @default(uuid())
+  clientUuid  String  @unique @map("client_uuid")
+  tipo        String // 'Revenda' | 'Empresas' | 'Fornecedor'
+  cnpj        String
+  razaoSocial String  @map("razao_social")
+  contato     String
+  telefone    String
+  cep         String?
+  endereco    String?
+  email       String?
+  observacoes String?
+
+  clienteId String?  @map("cliente_id")
+  cliente   Cliente? @relation(fields: [clienteId], references: [id])
+
+  capturadoPorId String?  @map("capturado_por_id")
+  capturadoPor   Usuario? @relation("CapturadoPor", fields: [capturadoPorId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("leads")
+}
+
+// Catalog: Categoria -> Grupo (optional level, some categorias are flat) ->
+// Tipo -> Produto.
+model Categoria {
+  id     String  @id @default(uuid())
+  nome   String
+  grupos Grupo[]
+  tipos  Tipo[] // populated directly when this categoria has no grupo level
+
+  @@map("categorias")
+}
+
+model Grupo {
+  id          String @id @default(uuid())
+  nome        String
+  categoriaId String @map("categoria_id")
+
+  categoria Categoria @relation(fields: [categoriaId], references: [id])
+  tipos     Tipo[]
+
+  @@map("grupos")
+}
+
+model Tipo {
+  id          String  @id @default(uuid())
+  nome        String
+  categoriaId String? @map("categoria_id") // set when flat (no grupo above this tipo)
+  grupoId     String? @map("grupo_id")
+
+  categoria Categoria? @relation(fields: [categoriaId], references: [id])
+  grupo     Grupo?     @relation(fields: [grupoId], references: [id])
+  produtos  Produto[]
+
+  @@map("tipos")
+}
+
+model Produto {
+  id              String  @id @default(uuid())
+  codigo          String  @unique
+  nome            String
+  descricao       String?
+  quantidadeCaixa Int?    @map("quantidade_caixa")
+  dimensoes       String?
+  composicao      String?
+  foto            String? // plain URL for now — see docs/PLAN.md's deferred photo-upload note
+
+  tipoId String @map("tipo_id")
+  tipo   Tipo   @relation(fields: [tipoId], references: [id])
+
+  @@map("produtos")
+}
+
+model Indicacao {
+  id        String  @id @default(uuid())
+  categoria String // 'restaurante' | 'farmacia_mercado' | 'transporte' | 'passeio'
+  nome      String
+  endereco  String?
+  horario   String?
+  telefone  String?
+  latitude  Float?
+  longitude Float?
+  mapaUrl   String? @map("mapa_url")
+
+  @@map("indicacoes")
+}
+
+model Orientacao {
+  id     String            @id @default(uuid())
+  titulo String
+  ordem  Int               @default(0)
+  secoes OrientacaoSecao[]
+
+  @@map("orientacoes")
+}
+
+model OrientacaoSecao {
+  id           String @id @default(uuid())
+  titulo       String?
+  texto        String
+  ordem        Int    @default(0)
+  orientacaoId String @map("orientacao_id")
+
+  orientacao Orientacao @relation(fields: [orientacaoId], references: [id])
+
+  @@map("orientacao_secoes")
+}
+
+model Programacao {
+  id        String   @id @default(uuid())
+  dia       DateTime @db.Date
+  horario   String?
+  titulo    String
+  descricao String?
+
+  @@map("programacao")
+}
