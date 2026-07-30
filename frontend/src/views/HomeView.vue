@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Briefcase, Calendar, Info, LayoutGrid, Map, Package, Search, Star, UserPlus } from '@lucide/vue'
+import { Briefcase, Calendar, Info, LayoutGrid, Map, Package, RefreshCw, Search, Settings, Star, UserPlus } from '@lucide/vue'
 import SectionLabel from '@/components/ui/SectionLabel.vue'
 import MenuCard from '@/components/ui/MenuCard.vue'
-import { somenteDigitos } from '@/lib/format'
+import { useAuthStore } from '@/stores/auth'
+import { useSyncStore } from '@/stores/sync'
+import { somenteDigitos, tempoRelativo } from '@/lib/format'
 
 const router = useRouter()
 const buscaGlobal = ref('')
+const sync = useSyncStore()
+const auth = useAuthStore()
 
 // "routes to client or representative results depending on what's typed"
 // (docs/SPECS.md) — a CNPJ-shaped (mostly numeric) query means client
@@ -56,6 +60,21 @@ function aoRolar() {
   </form>
 
   <div class="px-4">
+    <button
+      type="button"
+      :disabled="sync.sincronizando"
+      class="mb-4 mt-4 flex w-full items-center justify-between rounded-field bg-icon-soft px-3.5 py-2.5 text-left disabled:opacity-70"
+      @click="sync.sincronizar()"
+    >
+      <span class="text-[13px] text-primary">
+        <template v-if="sync.sincronizando">Atualizando dados...</template>
+        <template v-else-if="sync.erro">{{ sync.erro }}</template>
+        <template v-else-if="sync.ultimaSincronizacao">Dados atualizados {{ tempoRelativo(sync.ultimaSincronizacao) }}</template>
+        <template v-else>Dados ainda não sincronizados</template>
+      </span>
+      <RefreshCw :size="16" class="shrink-0 text-primary" :class="sync.sincronizando ? 'animate-spin' : ''" />
+    </button>
+
     <SectionLabel>Destaques</SectionLabel>
     <div ref="carrosselRef" class="no-scrollbar flex snap-x snap-mandatory gap-3.5 overflow-x-auto" @scroll="aoRolar">
       <RouterLink
@@ -114,5 +133,14 @@ function aoRolar() {
         Orientações
       </MenuCard>
     </div>
+
+    <template v-if="auth.usuario?.isAdmin">
+      <SectionLabel dot-class="bg-comercial">Administração</SectionLabel>
+      <div class="grid grid-cols-2 gap-4 pb-2">
+        <MenuCard :to="{ name: 'admin-usuarios' }" :icon="Settings" icon-class="bg-comercial-soft text-comercial" full-width>
+          Gestão de Conteúdo
+        </MenuCard>
+      </div>
+    </template>
   </div>
 </template>

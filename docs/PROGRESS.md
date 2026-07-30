@@ -7,7 +7,7 @@ this to see how far the build really is and *why* specific things ended up
 the way they did, especially where a decision was made mid-implementation
 and never fed back into the earlier docs.
 
-**Status: Phases 1-4 done. Phase 5 (offline/PWA layer) is next.**
+**Status: Phases 1-6 done. Phase 7 (containerize + deploy) is next.**
 
 ---
 
@@ -182,11 +182,91 @@ to a constructed Google Maps link from lat/long.
   `.dll.node` file) — stop the dev server before `prisma migrate dev`,
   regenerate, then restart it.
 
+## Phase 5 — Offline / PWA layer
+
+Dexie (IndexedDB) mirrors every bulk-read collection locally; screens read
+from Dexie, not `fetch`, so the app works with zero connectivity once
+synced.
+
+- `lib/db.ts`: one Dexie table per collection + a `leadsOutbox` table.
+  `syncAll()` does a full overwrite-local-with-server's-latest per table
+  inside one transaction — no merge/conflict logic needed, since only
+  admins ever write these collections and they're always online when they
+  do. Triggered on login and on the `online` browser event.
+- `lib/outbox.ts`: leads are a write-ahead path, not a synced collection —
+  `salvarLeadPendente()` writes to `leadsOutbox` first, then tries to POST
+  immediately; `enviarPendentes()` drains the outbox in order and stops at
+  the first failure (offline-safe retry, no reordering). A red badge on the
+  BottomNav's Leads tab shows the pending count.
+- **Real bug caught and fixed**: `stores/auth.ts`'s session restore treated
+  *any* `/api/auth/me` failure — including a network failure while offline
+  — as "not logged in," which would have bounced an already-logged-in rep
+  to `/login` the moment they lost signal at the venue. Fixed by checking
+  `error.status === 401` specifically for a real logout; anything else
+  (offline) falls back to a `localStorage`-cached session instead.
+- `vite-plugin-pwa` (Workbox, `generateSW`) for the service worker.
+  Its default precache glob excludes `.jpg` — would have silently dropped
+  the 1.2MB Mapa da Feira image, defeating that whole screen's offline
+  purpose; fixed with an explicit `globPatterns` list. `globIgnores` drops
+  unused non-Latin Inter subsets from the precache.
+- Verified live: killed the backend mid-session and confirmed the app
+  stayed logged in, browsed synced data, queued a lead, then flushed it
+  automatically once the backend came back.
+
+## Phase 6 — Admin CMS
+
+- **Catalog CMS UX**: `design-frame/admin.html`'s mockup shows one flat
+  "Produtos" tab, but the real catalog is 4 levels deep. Chose a
+  drill-down tree that mirrors the public app's own Categoria → Grupo/Tipo
+  → Produto navigation (a flat categoria skips straight to Tipos) over
+  four independent flat tabs — reuses a pattern already proven in Phase 4
+  Slice E instead of inventing a second one.
+- **One generic, config-driven CRUD component** (`AdminCrudView.vue`) —
+  table + modal form driven by a `campos`/`colunas` config — reused across
+  Usuários, Clientes, Indicações, Programação, and all four catalog levels.
+  Mirrors the backend's own `crudRouter` factory precedent. Usuários needs
+  bespoke field config (password required-only-on-create, `isAdmin`
+  checkbox, superior/gerente picker); Orientações' nested `secoes` editor
+  doesn't fit the generic shape at all and got its own bespoke view; Leads
+  is read-only (no create/edit, just the existing CSV export).
+  Admin-only routes and layout are a `meta.admin` flag: `App.vue` swaps out
+  the mobile shell (bottom nav, `max-w-shell`) entirely for these routes
+  instead of squeezing a desktop CMS into a 460px mobile frame.
+- **Real bug caught and fixed while testing live**: the generic form only
+  sent fields that had a visible input, silently dropping the
+  `categoriaId`/`grupoId`/`tipoId` a drill-down view injects via
+  `itemVazio()` to scope a new row to its parent — new Grupos/Tipos/
+  Produtos were saving as orphans. Fixed by sending every key present on
+  the form (minus `id`/`createdAt`/`updatedAt`, which must never round-trip
+  back to the API), not just the ones with a rendered field.
+- **A second, more serious bug found the same way**: deleting an
+  Orientação that has `secoes` violated the FK
+  (`orientacao_secoes_orientacao_id_fkey`) because the delete route never
+  removed its sections first — and that unhandled rejection **crashed the
+  entire backend process**, taking the API down for everyone, not just a
+  500 to that one request. Root cause: Express 4 doesn't forward a
+  rejected async-handler promise to error middleware on its own, and
+  nothing in this codebase was catching it. Fixed both the immediate bug
+  (delete `secoes` in a transaction before the `Orientacao` itself) and the
+  systemic one — every route handler across `auth.ts`, `usuarios.ts`,
+  `orientacoes.ts`, `leads.ts`, and `crudRouter.ts` is now wrapped in a
+  small `lib/asyncHandler.ts` (`ah()`) that forwards failures to `next()`,
+  and `app.ts` has a final catch-all error middleware returning a plain
+  500 instead of dying. This means any *other* still-undiscovered
+  unexpected DB error is now a contained 500, not a full outage — worth
+  keeping in mind for Phase 8's pre-expo drill.
+- Verified `isAdmin` enforcement isn't just a hidden UI element: created a
+  throwaway non-admin `Usuario` and confirmed via `curl` that it gets a
+  403 on POST/PUT/DELETE across `categorias`, `usuarios`, and
+  `orientacoes` — matches `PLAN.md`'s Phase 6 done-when criterion of
+  testing with a *valid* non-admin session, not just a missing one.
+
 ---
 
 ## What's next
 
-Per `PLAN.md`: **Phase 5** (Dexie/IndexedDB offline layer, `leadsOutbox`,
-switching reads from `fetch` to Dexie, `vite-plugin-pwa`), then **Phase 6**
-(Admin CMS), **Phase 7** (containerize + deploy), **Phase 8** (real content
-population from ERP CSVs + pre-expo drill).
+Per `PLAN.md`: **Phase 7** (containerize both apps, multi-stage Dockerfile,
+HTTPS/same-origin packaging so the PWA can actually be installed and
+tested offline on a real device), then **Phase 8** (real content population
+from ERP CSVs, create real `Usuario` accounts for all staff, pre-expo
+Lighthouse/install drill).

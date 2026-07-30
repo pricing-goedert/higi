@@ -1,11 +1,30 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { api } from '@/lib/api'
+import { api, ApiError } from '@/lib/api'
 
 export interface UsuarioSessao {
   id: string
   nome: string
   isAdmin: boolean
+}
+
+const CHAVE_SESSAO_CACHE = 'higiexpo:sessao'
+
+function salvarSessaoEmCache(usuario: UsuarioSessao | null) {
+  if (usuario) {
+    localStorage.setItem(CHAVE_SESSAO_CACHE, JSON.stringify(usuario))
+  } else {
+    localStorage.removeItem(CHAVE_SESSAO_CACHE)
+  }
+}
+
+function obterSessaoEmCache(): UsuarioSessao | null {
+  try {
+    const bruto = localStorage.getItem(CHAVE_SESSAO_CACHE)
+    return bruto ? JSON.parse(bruto) : null
+  } catch {
+    return null
+  }
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -20,8 +39,20 @@ export const useAuthStore = defineStore('auth', () => {
     carregando.value = true
     try {
       usuario.value = await api.get<UsuarioSessao>('/auth/me')
-    } catch {
-      usuario.value = null
+      salvarSessaoEmCache(usuario.value)
+    } catch (erro) {
+      if (erro instanceof ApiError && erro.status === 401) {
+        // A real "you're not logged in" — no session, or it's expired/
+        // invalidated server-side.
+        usuario.value = null
+        salvarSessaoEmCache(null)
+      } else {
+        // Couldn't even reach the server — offline, most likely. Trust the
+        // last known session rather than bouncing an already-logged-in rep
+        // to the login screen just because there's no connectivity right
+        // now (see docs/PLAN.md's Phase 5 done-when criteria).
+        usuario.value = obterSessaoEmCache()
+      }
     } finally {
       carregando.value = false
     }
@@ -29,11 +60,13 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function login(email: string, password: string) {
     usuario.value = await api.post<UsuarioSessao>('/auth/login', { email, password })
+    salvarSessaoEmCache(usuario.value)
   }
 
   async function logout() {
     await api.post('/auth/logout')
     usuario.value = null
+    salvarSessaoEmCache(null)
   }
 
   return { usuario, carregando, logado, restaurarSessao, login, logout }

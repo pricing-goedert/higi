@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
 import { House, Briefcase, LayoutGrid, UserPlus } from '@lucide/vue'
+import { useLeadsPendentesCount } from '@/composables/useLeadsPendentesCount'
 
 const route = useRoute()
+const leadsPendentes = useLeadsPendentesCount()
 
 // Icon choices mirror design-frame's actual SVGs exactly (verified path-by-path
 // against docs/design-frame/index.html), not a semantic guess at each icon.
@@ -27,10 +29,18 @@ function estaAtiva(nomeRota: string) {
       v-for="aba in abas"
       :key="aba.rota"
       :to="{ name: aba.rota }"
-      class="flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium"
+      class="relative flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium"
       :class="estaAtiva(aba.rota) ? 'text-primary' : 'text-faint'"
     >
-      <component :is="aba.icone" :size="22" />
+      <span class="relative">
+        <component :is="aba.icone" :size="22" />
+        <span
+          v-if="aba.rota === 'leads' && leadsPendentes > 0"
+          class="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-semibold leading-none text-white"
+        >
+          {{ leadsPendentes }}
+        </span>
+      </span>
       <span>{{ aba.nome }}</span>
     </RouterLink>
   </nav>

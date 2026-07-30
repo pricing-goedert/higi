@@ -1,98 +1,90 @@
 /**
- * Thin wrapper around the bulk-read API. Phase 5 (docs/PLAN.md) swaps these
- * internals to read from Dexie instead of `fetch` directly — views call
- * these functions rather than `api.get(...)` so that swap doesn't touch
- * every screen.
+ * Reads go through Dexie (the local synced copy — see lib/db.ts's syncAll),
+ * not `fetch`, so every screen works offline once synced. Leads are the one
+ * exception: they're not a synced collection (see docs/ARCHITECTURE.md),
+ * they're a write path — see lib/outbox.ts.
  */
+import { db } from './db'
 import { api } from './api'
-import type {
-  Categoria,
-  Cliente,
-  Grupo,
-  Indicacao,
-  Lead,
-  NovoLead,
-  Orientacao,
-  Produto,
-  Programacao,
-  Tipo,
-  Usuario,
-} from '@/types/domain'
+import type { Categoria, Grupo, Indicacao, Lead, Orientacao, Produto, Programacao, Tipo, Usuario, Cliente } from '@/types/domain'
+
+async function buscarOuFalhar<T>(promessa: Promise<T | undefined>, nomeEntidade: string): Promise<T> {
+  const registro = await promessa
+  if (!registro) throw new Error(`${nomeEntidade} não encontrado`)
+  return registro
+}
 
 export function listUsuarios(): Promise<Usuario[]> {
-  return api.get<Usuario[]>('/usuarios')
+  return db.usuarios.toArray()
 }
 
 export function getUsuario(id: string): Promise<Usuario> {
-  return api.get<Usuario>(`/usuarios/${id}`)
+  return buscarOuFalhar(db.usuarios.get(id), 'Usuário')
 }
 
 export function listClientes(): Promise<Cliente[]> {
-  return api.get<Cliente[]>('/clientes')
+  return db.clientes.toArray()
 }
 
 export function getCliente(id: string): Promise<Cliente> {
-  return api.get<Cliente>(`/clientes/${id}`)
+  return buscarOuFalhar(db.clientes.get(id), 'Cliente')
 }
 
-// Scoped server-side to the caller's own leads unless they're an admin —
-// see backend/src/routes/leads.ts.
+// Not a synced-offline collection — leads are read live from the server,
+// scoped server-side to the caller's own leads unless they're an admin.
+// See backend/src/routes/leads.ts and lib/outbox.ts for the write path.
 export function listLeads(): Promise<Lead[]> {
   return api.get<Lead[]>('/leads')
 }
 
-export function criarLead(dados: NovoLead): Promise<Lead> {
-  return api.post<Lead>('/leads', dados)
-}
-
 export function listCategorias(): Promise<Categoria[]> {
-  return api.get<Categoria[]>('/categorias')
+  return db.categorias.toArray()
 }
 
 export function getCategoria(id: string): Promise<Categoria> {
-  return api.get<Categoria>(`/categorias/${id}`)
+  return buscarOuFalhar(db.categorias.get(id), 'Categoria')
 }
 
 export function listGrupos(): Promise<Grupo[]> {
-  return api.get<Grupo[]>('/grupos')
+  return db.grupos.toArray()
 }
 
 export function getGrupo(id: string): Promise<Grupo> {
-  return api.get<Grupo>(`/grupos/${id}`)
+  return buscarOuFalhar(db.grupos.get(id), 'Grupo')
 }
 
 export function listTipos(): Promise<Tipo[]> {
-  return api.get<Tipo[]>('/tipos')
+  return db.tipos.toArray()
 }
 
 export function getTipo(id: string): Promise<Tipo> {
-  return api.get<Tipo>(`/tipos/${id}`)
+  return buscarOuFalhar(db.tipos.get(id), 'Tipo')
 }
 
 export function listProdutos(): Promise<Produto[]> {
-  return api.get<Produto[]>('/produtos')
+  return db.produtos.toArray()
 }
 
 export function getProduto(id: string): Promise<Produto> {
-  return api.get<Produto>(`/produtos/${id}`)
+  return buscarOuFalhar(db.produtos.get(id), 'Produto')
 }
 
 export function listProgramacao(): Promise<Programacao[]> {
-  return api.get<Programacao[]>('/programacao')
+  return db.programacao.toArray()
 }
 
 export function listIndicacoes(): Promise<Indicacao[]> {
-  return api.get<Indicacao[]>('/indicacoes')
+  return db.indicacoes.toArray()
 }
 
 export function getIndicacao(id: string): Promise<Indicacao> {
-  return api.get<Indicacao>(`/indicacoes/${id}`)
+  return buscarOuFalhar(db.indicacoes.get(id), 'Indicação')
 }
 
 export function listOrientacoes(): Promise<Orientacao[]> {
-  return api.get<Orientacao[]>('/orientacoes')
+  return db.orientacoes.toArray()
 }
 
 export function getOrientacao(id: string): Promise<Orientacao> {
-  return api.get<Orientacao>(`/orientacoes/${id}`)
+  return buscarOuFalhar(db.orientacoes.get(id), 'Orientação')
 }

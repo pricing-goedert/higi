@@ -89,6 +89,28 @@ const router = createRouter({
       name: 'orientacao-detalhe',
       component: () => import('@/views/OrientacaoDetailView.vue'),
     },
+    {
+      path: '/admin',
+      component: () => import('@/views/admin/AdminLayout.vue'),
+      meta: { admin: true },
+      children: [
+        { path: '', redirect: { name: 'admin-usuarios' } },
+        { path: 'usuarios', name: 'admin-usuarios', component: () => import('@/views/admin/AdminUsuariosView.vue') },
+        { path: 'clientes', name: 'admin-clientes', component: () => import('@/views/admin/AdminClientesView.vue') },
+        { path: 'indicacoes', name: 'admin-indicacoes', component: () => import('@/views/admin/AdminIndicacoesView.vue') },
+        { path: 'programacao', name: 'admin-programacao', component: () => import('@/views/admin/AdminProgramacaoView.vue') },
+        { path: 'produtos', name: 'admin-produtos', component: () => import('@/views/admin/AdminCategoriasView.vue') },
+        {
+          path: 'produtos/categorias/:categoriaId',
+          name: 'admin-produtos-categoria',
+          component: () => import('@/views/admin/AdminCategoriaView.vue'),
+        },
+        { path: 'produtos/grupos/:grupoId', name: 'admin-produtos-grupo', component: () => import('@/views/admin/AdminGrupoView.vue') },
+        { path: 'produtos/tipos/:tipoId', name: 'admin-produtos-tipo', component: () => import('@/views/admin/AdminTipoView.vue') },
+        { path: 'orientacoes', name: 'admin-orientacoes', component: () => import('@/views/admin/AdminOrientacoesView.vue') },
+        { path: 'leads', name: 'admin-leads', component: () => import('@/views/admin/AdminLeadsView.vue') },
+      ],
+    },
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
 })
@@ -108,6 +130,10 @@ router.beforeEach(async (to) => {
   }
 
   if (to.name === 'login' && auth.logado) {
+    return { name: 'home' }
+  }
+
+  if (to.meta.admin && !auth.usuario?.isAdmin) {
     return { name: 'home' }
   }
 

@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { prisma } from './prisma'
 import { requireAuth, requireAdmin } from '../middleware/auth'
+import { ah } from './asyncHandler'
 
 // Straightforward collections (no password hashing, no nested writes) share
 // this one shape: list/get behind login, write behind isAdmin. Usuario and
@@ -18,33 +19,56 @@ export function crudRouter(modelName: SimpleModel) {
     delete: (args: { where: { id: string } }) => Promise<unknown>
   }
 
-  router.get('/', requireAuth, async (_req, res) => {
-    res.json(await model.findMany())
-  })
+  router.get(
+    '/',
+    requireAuth,
+    ah(async (_req, res) => {
+      res.json(await model.findMany())
+    }),
+  )
 
-  router.get('/:id', requireAuth, async (req, res) => {
-    const item = await model.findUnique({ where: { id: req.params.id } })
-    if (!item) {
-      res.status(404).json({ error: 'Não encontrado' })
-      return
-    }
-    res.json(item)
-  })
+  router.get(
+    '/:id',
+    requireAuth,
+    ah(async (req, res) => {
+      const item = await model.findUnique({ where: { id: req.params.id } })
+      if (!item) {
+        res.status(404).json({ error: 'Não encontrado' })
+        return
+      }
+      res.json(item)
+    }),
+  )
 
-  router.post('/', requireAuth, requireAdmin, async (req, res) => {
-    const item = await model.create({ data: req.body })
-    res.status(201).json(item)
-  })
+  router.post(
+    '/',
+    requireAuth,
+    requireAdmin,
+    ah(async (req, res) => {
+      const item = await model.create({ data: req.body })
+      res.status(201).json(item)
+    }),
+  )
 
-  router.put('/:id', requireAuth, requireAdmin, async (req, res) => {
-    const item = await model.update({ where: { id: req.params.id }, data: req.body })
-    res.json(item)
-  })
+  router.put(
+    '/:id',
+    requireAuth,
+    requireAdmin,
+    ah(async (req, res) => {
+      const item = await model.update({ where: { id: req.params.id }, data: req.body })
+      res.json(item)
+    }),
+  )
 
-  router.delete('/:id', requireAuth, requireAdmin, async (req, res) => {
-    await model.delete({ where: { id: req.params.id } })
-    res.status(204).send()
-  })
+  router.delete(
+    '/:id',
+    requireAuth,
+    requireAdmin,
+    ah(async (req, res) => {
+      await model.delete({ where: { id: req.params.id } })
+      res.status(204).send()
+    }),
+  )
 
   return router
 }

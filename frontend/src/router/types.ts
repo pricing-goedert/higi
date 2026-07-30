@@ -6,5 +6,7 @@ declare module 'vue-router' {
     semNav?: boolean
     /** Reachable without a logged-in session (only /login today). */
     publica?: boolean
+    /** Admin CMS routes: gated on usuario.isAdmin, rendered outside the mobile shell (own topbar+tabs layout). */
+    admin?: boolean
   }
 }

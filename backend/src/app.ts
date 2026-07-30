@@ -28,3 +28,12 @@ app.use('/api/indicacoes', crudRouter('indicacao'))
 app.use('/api/orientacoes', orientacoesRouter)
 app.use('/api/programacao', crudRouter('programacao'))
 app.use('/api/leads', leadsRouter)
+
+// Last resort: any route handler wrapped in `ah()` (see lib/asyncHandler)
+// forwards unexpected errors here instead of crashing the process — an
+// admin typo or a bad FK must return a 500 to that one request, not take
+// the whole app down for every rep at the event.
+app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error(err)
+  res.status(500).json({ error: 'Erro interno' })
+})

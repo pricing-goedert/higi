@@ -6,11 +6,14 @@ import AppHeader from '@/components/layout/AppHeader.vue'
 import SegmentedControl from '@/components/ui/SegmentedControl.vue'
 import TextField from '@/components/ui/TextField.vue'
 import AppButton from '@/components/ui/AppButton.vue'
-import { getCliente, listClientes, criarLead } from '@/lib/data'
+import { getCliente, listClientes } from '@/lib/data'
+import { salvarLeadPendente } from '@/lib/outbox'
+import { useLeadsPendentesCount } from '@/composables/useLeadsPendentesCount'
 import { cnpjValido, mascaraCep, mascaraCnpj, mascaraTelefone, somenteDigitos } from '@/lib/format'
 import type { Cliente, TipoLead } from '@/types/domain'
 
 const route = useRoute()
+const leadsPendentes = useLeadsPendentesCount()
 
 const tipo = ref<TipoLead>('Revenda')
 const cnpj = ref('')
@@ -105,7 +108,7 @@ async function salvar() {
 
   enviando.value = true
   try {
-    await criarLead({
+    await salvarLeadPendente({
       clientUuid: crypto.randomUUID(),
       tipo: tipo.value,
       cnpj: somenteDigitos(cnpj.value),
@@ -135,6 +138,10 @@ async function salvar() {
     <RouterLink :to="{ name: 'leads-lista' }" class="flex items-center gap-1.5 text-[14px] font-semibold text-primary">
       <List :size="16" /> Ver leads cadastrados
     </RouterLink>
+
+    <p v-if="leadsPendentes > 0" class="text-[13px] text-muted">
+      {{ leadsPendentes }} lead{{ leadsPendentes === 1 ? '' : 's' }} pendente{{ leadsPendentes === 1 ? '' : 's' }} de sincronização
+    </p>
 
     <p v-if="mensagem" class="rounded-field bg-produtos-soft px-3.5 py-2.5 text-[14px] font-medium text-produtos">
       {{ mensagem }}
