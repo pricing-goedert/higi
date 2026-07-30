@@ -13,8 +13,8 @@ const sync = useSyncStore()
 // Fires on initial load if a session was already restored, and again right
 // after a fresh login — the one moment reps are expected to have reliable
 // connectivity (see docs/ARCHITECTURE.md's offline layer section). Also
-// flushes any leads queued while offline, same as the `online` listener
-// below covers for a device that regains connectivity mid-session.
+// flushes any leads queued while offline, same as the reconnect handling in
+// stores/sync.ts covers for a device that regains connectivity mid-session.
 watch(
   () => auth.logado,
   (logado) => {
@@ -26,8 +26,12 @@ watch(
   { immediate: true },
 )
 
-onMounted(() => window.addEventListener('online', enviarPendentes))
-onUnmounted(() => window.removeEventListener('online', enviarPendentes))
+// Tracks live connectivity (online/offline events + a periodic reachability
+// ping) and re-syncs the moment the app actually regains a working
+// connection — see stores/sync.ts for why this replaced a bare `online`
+// listener here.
+onMounted(() => sync.iniciarMonitoramento())
+onUnmounted(() => sync.pararMonitoramento())
 </script>
 
 <template>

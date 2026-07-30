@@ -34,8 +34,14 @@ export async function enviarPendentes(): Promise<void> {
     const pendentes = await db.leadsOutbox.toArray()
     for (const { criadoEm: _criadoEm, ...dados } of pendentes) {
       try {
-        await api.post<Lead>('/leads', dados)
-        await db.leadsOutbox.delete(dados.clientUuid)
+        const lead = await api.post<Lead>('/leads', dados)
+        // Same transaction: a just-synced lead must show up in the "already
+        // sent" cache the instant it leaves the outbox, not just next time
+        // listLeads() happens to run.
+        await db.transaction('rw', db.leadsOutbox, db.leadsSincronizados, async () => {
+          await db.leadsSincronizados.put(lead)
+          await db.leadsOutbox.delete(dados.clientUuid)
+        })
       } catch {
         // Almost certainly offline — leave the rest queued and stop this
         // pass rather than retrying each one and failing the same way.

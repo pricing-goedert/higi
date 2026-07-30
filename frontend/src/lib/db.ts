@@ -5,6 +5,7 @@ import type {
   Cliente,
   Grupo,
   Indicacao,
+  Lead,
   NovoLead,
   Orientacao,
   Produto,
@@ -29,6 +30,7 @@ class HigiexpoDB extends Dexie {
   orientacoes!: Table<Orientacao, string>
   programacao!: Table<Programacao, string>
   leadsOutbox!: Table<LeadPendente, string>
+  leadsSincronizados!: Table<Lead, string>
 
   constructor() {
     super('higiexpo')
@@ -44,10 +46,35 @@ class HigiexpoDB extends Dexie {
       programacao: 'id, dia',
       leadsOutbox: 'clientUuid',
     })
+    // Dexie versions aren't diffed — every store from version 1 must be
+    // restated here too, or it gets dropped on upgrade.
+    this.version(2).stores({
+      usuarios: 'id',
+      clientes: 'id, cnpj',
+      categorias: 'id',
+      grupos: 'id, categoriaId',
+      tipos: 'id, categoriaId, grupoId',
+      produtos: 'id, tipoId, codigo',
+      indicacoes: 'id, categoria',
+      orientacoes: 'id',
+      programacao: 'id, dia',
+      leadsOutbox: 'clientUuid',
+      leadsSincronizados: 'id, capturadoPorId',
+    })
   }
 }
 
 export const db = new HigiexpoDB()
+
+/**
+ * Cleared on every identity transition (login, logout, and a clean 401 on
+ * session restore) — devices are shared between reps, and one rep's leads
+ * (or, for an admin session, everyone's) must never leak to whoever logs in
+ * next on the same phone. See stores/auth.ts.
+ */
+export function limparCacheLeads(): Promise<void> {
+  return db.leadsSincronizados.clear()
+}
 
 /**
  * Pulls every bulk-read collection fresh from the API and overwrites the

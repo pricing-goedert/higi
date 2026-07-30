@@ -3,7 +3,7 @@ import AdminCrudView, { type CampoForm, type ColunaTabela } from '@/components/a
 
 const campos: CampoForm[] = [
   { chave: 'dia', rotulo: 'Dia', tipo: 'data', obrigatorio: true },
-  { chave: 'horario', rotulo: 'Horário' },
+  { chave: 'horario', rotulo: 'Horário', tipo: 'hora' },
   { chave: 'titulo', rotulo: 'Título', obrigatorio: true },
   { chave: 'descricao', rotulo: 'Descrição', tipo: 'textarea' },
 ]

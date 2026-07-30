@@ -44,6 +44,7 @@ const router = createRouter({
       name: 'leads-lista',
       component: () => import('@/views/LeadsListView.vue'),
     },
+    { path: '/perfil', name: 'perfil', component: () => import('@/views/PerfilView.vue') },
     { path: '/produtos', name: 'produtos', component: () => import('@/views/ProdutosView.vue') },
     {
       path: '/produtos/categorias',

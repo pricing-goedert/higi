@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Briefcase, Calendar, Info, LayoutGrid, Map, Package, RefreshCw, Search, Settings, Star, UserPlus } from '@lucide/vue'
 import SectionLabel from '@/components/ui/SectionLabel.vue'
@@ -12,6 +12,11 @@ const router = useRouter()
 const buscaGlobal = ref('')
 const sync = useSyncStore()
 const auth = useAuthStore()
+
+// `conectadoServidor === null` means "not checked yet" — deliberately not
+// treated as offline, so a fresh page load doesn't flash a false banner
+// before the first reachability check resolves.
+const semConexao = computed(() => !sync.online || sync.conectadoServidor === false)
 
 // "routes to client or representative results depending on what's typed"
 // (docs/SPECS.md) — a CNPJ-shaped (mostly numeric) query means client
@@ -66,8 +71,9 @@ function aoRolar() {
       class="mb-4 mt-4 flex w-full items-center justify-between rounded-field bg-icon-soft px-3.5 py-2.5 text-left disabled:opacity-70"
       @click="sync.sincronizar()"
     >
-      <span class="text-[13px] text-primary">
+      <span class="text-[13px]" :class="semConexao ? 'text-danger' : 'text-primary'">
         <template v-if="sync.sincronizando">Atualizando dados...</template>
+        <template v-else-if="semConexao">Sem conexão</template>
         <template v-else-if="sync.erro">{{ sync.erro }}</template>
         <template v-else-if="sync.ultimaSincronizacao">Dados atualizados {{ tempoRelativo(sync.ultimaSincronizacao) }}</template>
         <template v-else>Dados ainda não sincronizados</template>

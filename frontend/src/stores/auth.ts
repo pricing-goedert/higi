@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { api, ApiError } from '@/lib/api'
+import { limparCacheLeads } from '@/lib/db'
 
 export interface UsuarioSessao {
   id: string
@@ -43,9 +44,12 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (erro) {
       if (erro instanceof ApiError && erro.status === 401) {
         // A real "you're not logged in" — no session, or it's expired/
-        // invalidated server-side.
+        // invalidated server-side. Clears the leads cache too: the device
+        // may be handed to a different rep next, and a stale cache from
+        // whoever was logged in before must not linger (see lib/db.ts).
         usuario.value = null
         salvarSessaoEmCache(null)
+        void limparCacheLeads()
       } else {
         // Couldn't even reach the server — offline, most likely. Trust the
         // last known session rather than bouncing an already-logged-in rep
@@ -59,6 +63,11 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function login(email: string, password: string) {
+    // Defensive, not just belt-and-suspenders: a login on a shared device
+    // must never risk surfacing whoever was cached from a previous session
+    // that didn't go through a clean logout (e.g. an expired-but-uncleared
+    // cache) even for an instant.
+    await limparCacheLeads()
     usuario.value = await api.post<UsuarioSessao>('/auth/login', { email, password })
     salvarSessaoEmCache(usuario.value)
   }
@@ -67,7 +76,14 @@ export const useAuthStore = defineStore('auth', () => {
     await api.post('/auth/logout')
     usuario.value = null
     salvarSessaoEmCache(null)
+    await limparCacheLeads()
   }
 
-  return { usuario, carregando, logado, restaurarSessao, login, logout }
+  function atualizarNome(nome: string) {
+    if (!usuario.value) return
+    usuario.value = { ...usuario.value, nome }
+    salvarSessaoEmCache(usuario.value)
+  }
+
+  return { usuario, carregando, logado, restaurarSessao, login, logout, atualizarNome }
 })

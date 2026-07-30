@@ -3,13 +3,9 @@ import bcrypt from 'bcrypt'
 import { prisma } from '../lib/prisma'
 import { requireAuth, requireAdmin } from '../middleware/auth'
 import { ah } from '../lib/asyncHandler'
+import { semSenha } from '../lib/semSenha'
 
 const router = Router()
-
-function semSenha<T extends { passwordHash: string }>(usuario: T): Omit<T, 'passwordHash'> {
-  const { passwordHash: _passwordHash, ...resto } = usuario
-  return resto
-}
 
 router.get(
   '/',

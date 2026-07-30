@@ -5,7 +5,7 @@
  * they're a write path — see lib/outbox.ts.
  */
 import { db } from './db'
-import { api } from './api'
+import { api, ApiError } from './api'
 import type { Categoria, Grupo, Indicacao, Lead, Orientacao, Produto, Programacao, Tipo, Usuario, Cliente } from '@/types/domain'
 
 async function buscarOuFalhar<T>(promessa: Promise<T | undefined>, nomeEntidade: string): Promise<T> {
@@ -30,11 +30,24 @@ export function getCliente(id: string): Promise<Cliente> {
   return buscarOuFalhar(db.clientes.get(id), 'Cliente')
 }
 
-// Not a synced-offline collection — leads are read live from the server,
-// scoped server-side to the caller's own leads unless they're an admin.
-// See backend/src/routes/leads.ts and lib/outbox.ts for the write path.
-export function listLeads(): Promise<Lead[]> {
-  return api.get<Lead[]>('/leads')
+// Leads aren't part of syncAll's bulk mirroring — they're read live, scoped
+// server-side to the caller's own leads unless they're an admin (see
+// backend/src/routes/leads.ts; the write path is lib/outbox.ts). But once a
+// lead is confirmed, it should still be visible offline, so a successful
+// fetch writes through to a local cache and a failed one (anything except a
+// clean 401 — a real logout must never silently fall back to stale leads)
+// falls back to it. That cache is cleared on every identity change; see
+// limparCacheLeads in lib/db.ts.
+export async function listLeads(): Promise<Lead[]> {
+  try {
+    const leads = await api.get<Lead[]>('/leads')
+    await db.leadsSincronizados.clear()
+    await db.leadsSincronizados.bulkAdd(leads)
+    return leads
+  } catch (erro) {
+    if (erro instanceof ApiError && erro.status === 401) throw erro
+    return db.leadsSincronizados.toArray()
+  }
 }
 
 export function listCategorias(): Promise<Categoria[]> {

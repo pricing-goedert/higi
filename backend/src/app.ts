@@ -3,6 +3,7 @@ import path from 'node:path'
 import fs from 'node:fs'
 import express from 'express'
 import cookieParser from 'cookie-parser'
+import compression from 'compression'
 
 import { crudRouter } from './lib/crudRouter'
 import authRouter from './routes/auth'
@@ -20,6 +21,12 @@ export const app = express()
 // `1` trusts exactly one hop (the platform's own proxy), not an arbitrary
 // chain a client could spoof.
 app.set('trust proxy', 1)
+
+// Every syncAll() resync re-fetches the full JSON list of every collection —
+// they compress very well given how repetitive the shape is, so this
+// shrinks the real bytes-on-wire cost without needing per-collection delta
+// sync (which would need updatedAt/deletion tracking added to most tables).
+app.use(compression())
 
 app.use(express.json())
 app.use(cookieParser())

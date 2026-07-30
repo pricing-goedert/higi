@@ -17,7 +17,7 @@ export interface OpcaoCampo {
 export interface CampoForm {
   chave: string
   rotulo: string
-  tipo?: 'texto' | 'textarea' | 'numero' | 'checkbox' | 'select' | 'senha' | 'data'
+  tipo?: 'texto' | 'textarea' | 'numero' | 'checkbox' | 'select' | 'senha' | 'data' | 'hora'
   opcoes?: OpcaoCampo[]
   obrigatorio?: boolean
   obrigatorioSomenteNaCriacao?: boolean
@@ -97,6 +97,12 @@ function abrirEdicao(item: Record<string, unknown>) {
   const base = { ...item }
   for (const campo of props.campos) {
     if (campo.tipo === 'senha') base[campo.chave] = ''
+    // The server returns a full ISO datetime (e.g. "2026-08-05T00:00:00.000Z")
+    // but <input type="date"> only accepts a bare "YYYY-MM-DD" — otherwise it
+    // silently renders empty.
+    if (campo.tipo === 'data' && typeof base[campo.chave] === 'string') {
+      base[campo.chave] = (base[campo.chave] as string).slice(0, 10)
+    }
   }
   form.value = base
   erroForm.value = ''
@@ -124,6 +130,12 @@ function normalizarValor(campo: CampoForm, valor: unknown) {
     return Number(valor)
   }
   if (campo.tipo === 'checkbox') return Boolean(valor)
+  if (campo.tipo === 'data') {
+    // Prisma's DateTime scalar rejects a bare "YYYY-MM-DD" (the raw value an
+    // <input type="date"> gives us) — needs a full ISO-8601 string.
+    if (!valor) return null
+    return new Date(`${valor}T00:00:00`).toISOString()
+  }
   if (valor === '') return null
   return valor
 }
@@ -278,7 +290,17 @@ defineExpose({ carregar })
 
           <input
             v-else
-            :type="campo.tipo === 'senha' ? 'password' : campo.tipo === 'numero' ? 'number' : campo.tipo === 'data' ? 'date' : 'text'"
+            :type="
+              campo.tipo === 'senha'
+                ? 'password'
+                : campo.tipo === 'numero'
+                  ? 'number'
+                  : campo.tipo === 'data'
+                    ? 'date'
+                    : campo.tipo === 'hora'
+                      ? 'time'
+                      : 'text'
+            "
             :value="(form[campo.chave] as string) ?? ''"
             :placeholder="campo.tipo === 'senha' && modoEdicao ? 'Deixe em branco para manter a atual' : undefined"
             class="h-12 w-full rounded-field border-[1.5px] border-divider bg-card px-3.5 text-ink outline-none focus:border-primary"

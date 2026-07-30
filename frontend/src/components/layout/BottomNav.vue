@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { House, Briefcase, LayoutGrid, UserPlus } from '@lucide/vue'
+import { House, Briefcase, LayoutGrid, UserPlus, User } from '@lucide/vue'
 import { useLeadsPendentesCount } from '@/composables/useLeadsPendentesCount'
 
 const route = useRoute()
 const leadsPendentes = useLeadsPendentesCount()
 
 // Icon choices mirror design-frame's actual SVGs exactly (verified path-by-path
-// against docs/design-frame/index.html), not a semantic guess at each icon.
+// against docs/design-frame/index.html) where a design-frame equivalent
+// exists; Perfil has no design-frame precedent (added post-launch), so it
+// just uses a plain profile icon.
 const abas = [
   { nome: 'Home', rota: 'home', icone: House },
   { nome: 'Repres.', rota: 'representantes', icone: Briefcase },
   { nome: 'Cliente', rota: 'clientes', icone: LayoutGrid },
   { nome: 'Leads', rota: 'leads', icone: UserPlus },
+  { nome: 'Perfil', rota: 'perfil', icone: User },
 ] as const
 
 function estaAtiva(nomeRota: string) {
