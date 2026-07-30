@@ -12,6 +12,15 @@ import leadsRouter from './routes/leads'
 
 export const app = express()
 
+// Any PaaS host that sits behind its own reverse proxy (Render, Heroku, and
+// eventually Azure Container Apps) sets X-Forwarded-For on every request.
+// Without this, Express doesn't know it can trust that header, and
+// express-rate-limit refuses to compute a client IP from it at all — which
+// broke the rate-limited /api/auth/login route entirely in production.
+// `1` trusts exactly one hop (the platform's own proxy), not an arbitrary
+// chain a client could spoof.
+app.set('trust proxy', 1)
+
 app.use(express.json())
 app.use(cookieParser())
 
