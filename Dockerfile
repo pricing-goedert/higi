@@ -39,6 +39,9 @@ COPY --from=backend-build /app/backend/prisma ./prisma
 COPY --from=frontend-build /app/frontend/dist ./public
 
 EXPOSE 3000
-# `migrate deploy` only applies pending migrations and is safe to re-run on
-# every container start — no separate migration step to remember.
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
+# `migrate deploy` only applies pending migrations, and the seed script only
+# upserts the one admin account (see prisma/seed.ts) — both are safe to
+# re-run on every container start, so a fresh database (e.g. a brand new
+# Render Postgres instance) always ends up with a working admin login
+# without a separate manual step.
+CMD ["sh", "-c", "npx prisma migrate deploy && npx tsx prisma/seed.ts && node dist/index.js"]

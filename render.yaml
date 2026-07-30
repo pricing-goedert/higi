@@ -1,0 +1,25 @@
+# Render Blueprint — a quick, throwaway deploy for testing today. The
+# planned permanent home is Azure Container Apps (docs/PLAN.md's Phase 7);
+# this reuses the same root Dockerfile unchanged to get something live fast
+# in the meantime. See docs/PROGRESS.md for the reasoning.
+services:
+  - type: web
+    name: higiexpo
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: higiexpo-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: NODE_ENV
+        value: production
+
+databases:
+  - name: higiexpo-db
+    databaseName: higiexpo
+    user: higiexpo
+    plan: free
