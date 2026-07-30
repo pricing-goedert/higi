@@ -7,7 +7,10 @@ this to see how far the build really is and *why* specific things ended up
 the way they did, especially where a decision was made mid-implementation
 and never fed back into the earlier docs.
 
-**Status: Phases 1-6 done. Phase 7 (containerize + deploy) is next.**
+**Status: Phases 1-6 done. Phase 7's containerization half is done — the
+deploy target changed from Azure Container Apps to Vercel mid-phase (see
+below), so the deploy half is being reworked, not finished as originally
+planned.**
 
 ---
 
@@ -261,12 +264,49 @@ synced.
   `orientacoes` — matches `PLAN.md`'s Phase 6 done-when criterion of
   testing with a *valid* non-admin session, not just a missing one.
 
+## Phase 7 — Containerize (deploy target changed mid-phase)
+
+Built and verified the container packaging exactly as `PLAN.md` describes,
+before the deploy target changed:
+
+- Root-level multi-stage `Dockerfile`: frontend build → backend build (+
+  `prisma generate`) → a Debian-slim runtime combining both. Debian-slim,
+  not Alpine, per `PLAN.md`'s own note — confirmed why the hard way: even
+  Debian-slim needs `libssl` installed explicitly (`apt-get install
+  openssl`) or Prisma can't detect which engine binary to use at all.
+- `backend/src/app.ts` now serves the built frontend as static files with
+  an SPA fallback (unmatched non-`/api` paths get `index.html`, unmatched
+  `/api/*` paths still 404) — but only when a `public/` dir exists next to
+  the compiled `dist/`, so local dev via the Vite proxy is untouched.
+- `prisma` moved from a dev dependency to a real one — the container needs
+  the CLI, not just `@prisma/client`, to run `prisma migrate deploy` on
+  every start (idempotent, safe to re-run).
+- `docker-compose.yml` gained an `app` service: builds from the Dockerfile,
+  waits on Postgres's healthcheck, and refuses to start without a real
+  `JWT_SECRET` (`${JWT_SECRET:?...}` — no insecure default baked in).
+- Verified locally end-to-end via `docker compose up`: health check,
+  frontend load, SPA routing, login, and the full Admin CMS all worked
+  through the one container on `localhost:8080`, backed by the same
+  Postgres migrations, no code changes from local dev.
+
+**Deploy target changed from Azure Container Apps to Vercel's free
+(Hobby) tier** — a user decision made after the container image was
+already built and tested, not something `PLAN.md` anticipated. This is a
+real architecture mismatch, not just a hosting swap: Vercel's Hobby tier
+has no persistent container runtime — no long-lived Express process, no
+arbitrary Dockerfile deploys. It's a static-asset CDN plus short-lived
+serverless functions. See the next entry (once the adaptation work
+happens) for how the backend gets reshaped to fit that model, and what
+changes for Postgres hosting and Prisma connection handling.
+
 ---
 
 ## What's next
 
-Per `PLAN.md`: **Phase 7** (containerize both apps, multi-stage Dockerfile,
-HTTPS/same-origin packaging so the PWA can actually be installed and
-tested offline on a real device), then **Phase 8** (real content population
-from ERP CSVs, create real `Usuario` accounts for all staff, pre-expo
-Lighthouse/install drill).
+Reworking Phase 7's deploy half for Vercel instead of Azure Container
+Apps — adapting the Express backend to run as Vercel serverless
+functions, moving Postgres to a serverless-friendly managed provider
+(Neon/Supabase/Vercel Postgres), and moving `prisma migrate deploy` out of
+server startup into a build-time step. Then **Phase 8** (real content
+population from ERP CSVs, create real `Usuario` accounts for all staff,
+pre-expo Lighthouse/install drill).

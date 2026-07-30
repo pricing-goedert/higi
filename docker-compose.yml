@@ -10,6 +10,30 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-higiexpo}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # The whole app — frontend static build + backend API — as the one image
+  # built from the root Dockerfile. Same image ships to Azure Container
+  # Apps in Phase 7's deploy step; this is how it's tested locally first.
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-higiexpo}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-higiexpo}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env — no insecure default in the built image}
+      NODE_ENV: production
+      PORT: 3000
+    ports:
+      - "8080:3000"
 
 volumes:
   postgres_data:

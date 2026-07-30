@@ -1,4 +1,6 @@
 import 'dotenv/config'
+import path from 'node:path'
+import fs from 'node:fs'
 import express from 'express'
 import cookieParser from 'cookie-parser'
 
@@ -28,6 +30,24 @@ app.use('/api/indicacoes', crudRouter('indicacao'))
 app.use('/api/orientacoes', orientacoesRouter)
 app.use('/api/programacao', crudRouter('programacao'))
 app.use('/api/leads', leadsRouter)
+
+// Only present in the production image (see the Dockerfile) — the frontend's
+// built assets land as a sibling of this compiled dist/ dir. In local dev
+// this directory doesn't exist, so Vite's own dev server + the /api proxy in
+// vite.config.ts keeps handling the frontend, unchanged.
+const PUBLIC_DIR = path.join(__dirname, '../public')
+if (fs.existsSync(PUBLIC_DIR)) {
+  app.use(express.static(PUBLIC_DIR))
+  // SPA fallback for Vue Router's history mode — but a genuinely unmatched
+  // /api/* path must still 404, not silently return index.html.
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api/')) {
+      next()
+      return
+    }
+    res.sendFile(path.join(PUBLIC_DIR, 'index.html'))
+  })
+}
 
 // Last resort: any route handler wrapped in `ah()` (see lib/asyncHandler)
 // forwards unexpected errors here instead of crashing the process — an
