@@ -81,8 +81,12 @@ export function limparCacheLeads(): Promise<void> {
  * local copy. No merge/conflict logic — reps never edit these locally, only
  * admins do (always online), so "overwrite with the server's latest" is
  * always correct. See docs/PLAN.md's Phase 5 section.
+ *
+ * Returns the fresh produtos list so callers can warm the product-photo
+ * cache (see lib/fotosCache.ts) without a second read of what was just
+ * written.
  */
-export async function syncAll(): Promise<void> {
+export async function syncAll(): Promise<{ produtos: Produto[] }> {
   const [usuarios, clientes, categorias, grupos, tipos, produtos, indicacoes, orientacoes, programacao] =
     await Promise.all([
       api.get<Usuario[]>('/usuarios'),
@@ -113,4 +117,6 @@ export async function syncAll(): Promise<void> {
       ])
     },
   )
+
+  return { produtos }
 }

@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import { api } from '@/lib/api'
 import { syncAll } from '@/lib/db'
 import { enviarPendentes } from '@/lib/outbox'
+import { precarregarFotosProdutos } from '@/lib/fotosCache'
 
 const CHAVE_ULTIMA_SINCRONIZACAO = 'higiexpo:ultima-sincronizacao'
 const INTERVALO_VERIFICACAO_MS = 30_000
@@ -40,9 +41,13 @@ export const useSyncStore = defineStore('sync', () => {
     sincronizando.value = true
     erro.value = ''
     try {
-      await syncAll()
+      const { produtos } = await syncAll()
       ultimaSincronizacao.value = new Date().toISOString()
       localStorage.setItem(CHAVE_ULTIMA_SINCRONIZACAO, ultimaSincronizacao.value)
+      // Deliberadamente não aguardado: baixar as fotos do catálogo inteiro
+      // não deve atrasar o indicador de "sincronizado" nem bloquear o rep —
+      // roda em segundo plano, mesmo espírito do enviarPendentes() abaixo.
+      void precarregarFotosProdutos(produtos)
     } catch {
       // Most commonly "no connection" — the local (possibly stale) data
       // from the last successful sync stays usable either way.

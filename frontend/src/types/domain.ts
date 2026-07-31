@@ -99,6 +99,8 @@ export interface Produto {
   nome: string
   descricao: string | null
   quantidadeCaixa: number | null
+  pesoLiquido: number | null
+  pesoBruto: number | null
   dimensoes: string | null
   composicao: string | null
   foto: string | null

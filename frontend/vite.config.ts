@@ -65,6 +65,27 @@ export default defineConfig({
         // is ever requested for Portuguese content (flagged back in Phase 4
         // Slice A) — precaching the rest wastes offline storage for nothing.
         globIgnores: ['**/inter-{cyrillic,greek,vietnamese}*'],
+        // Product photos live on the ERP's own image host, not in this
+        // build — globPatterns above can't reach them. lib/fotosCache.ts
+        // eagerly warms this same "produto-fotos" cache while online; this
+        // rule is the safety net for any photo it missed (e.g. a product
+        // added mid-event without a full resync). Matched by extension, not
+        // by host, since Produto.foto is admin-enterable and not
+        // guaranteed to stay on one vendor's bucket.
+        runtimeCaching: [
+          {
+            urlPattern: /\.(?:png|jpe?g|webp|gif|avif)(?:\?.*)?$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'produto-fotos',
+              expiration: {
+                maxEntries: 2000,
+                maxAgeSeconds: 60 * 60 * 24 * 120, // 120 dias — cobre a janela do evento com folga
+              },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
     }),
   ],
