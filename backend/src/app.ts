@@ -10,6 +10,7 @@ import authRouter from './routes/auth'
 import usuariosRouter from './routes/usuarios'
 import orientacoesRouter from './routes/orientacoes'
 import leadsRouter from './routes/leads'
+import importarRouter from './routes/importar'
 
 export const app = express()
 
@@ -46,6 +47,7 @@ app.use('/api/indicacoes', crudRouter('indicacao'))
 app.use('/api/orientacoes', orientacoesRouter)
 app.use('/api/programacao', crudRouter('programacao'))
 app.use('/api/leads', leadsRouter)
+app.use('/api/importar', importarRouter)
 
 // Only present in the production image (see the Dockerfile) — the frontend's
 // built assets land as a sibling of this compiled dist/ dir. In local dev
