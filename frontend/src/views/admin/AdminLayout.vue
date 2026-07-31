@@ -13,6 +13,7 @@ const abas = [
   { rota: 'admin-produtos', rotulo: 'Produtos' },
   { rota: 'admin-orientacoes', rotulo: 'Orientações' },
   { rota: 'admin-leads', rotulo: 'Leads' },
+  { rota: 'admin-importar', rotulo: 'Importação' },
 ] as const
 
 function abaAtiva(rota: string) {

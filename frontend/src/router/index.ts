@@ -110,6 +110,7 @@ const router = createRouter({
         { path: 'produtos/tipos/:tipoId', name: 'admin-produtos-tipo', component: () => import('@/views/admin/AdminTipoView.vue') },
         { path: 'orientacoes', name: 'admin-orientacoes', component: () => import('@/views/admin/AdminOrientacoesView.vue') },
         { path: 'leads', name: 'admin-leads', component: () => import('@/views/admin/AdminLeadsView.vue') },
+        { path: 'importar', name: 'admin-importar', component: () => import('@/views/admin/AdminImportacaoView.vue') },
       ],
     },
     { path: '/:pathMatch(.*)*', redirect: '/' },
