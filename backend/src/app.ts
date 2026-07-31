@@ -53,7 +53,15 @@ app.use('/api/leads', leadsRouter)
 // vite.config.ts keeps handling the frontend, unchanged.
 const PUBLIC_DIR = path.join(__dirname, '../public')
 if (fs.existsSync(PUBLIC_DIR)) {
-  app.use(express.static(PUBLIC_DIR))
+  app.use(
+    express.static(PUBLIC_DIR, {
+      setHeaders(res, filePath) {
+        if (filePath.includes(`${path.sep}assets${path.sep}`)) {
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+        }
+      },
+    }),
+  )
   // SPA fallback for Vue Router's history mode — but a genuinely unmatched
   // /api/* path must still 404, not silently return index.html.
   app.get('*', (req, res, next) => {
