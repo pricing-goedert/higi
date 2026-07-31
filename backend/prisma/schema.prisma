@@ -135,6 +135,8 @@ model Produto {
   nome            String
   descricao       String?
   quantidadeCaixa Int?    @map("quantidade_caixa")
+  pesoLiquido     Float?  @map("peso_liquido")
+  pesoBruto       Float?  @map("peso_bruto")
   dimensoes       String?
   composicao      String?
   foto            String? // plain URL for now — see docs/PLAN.md's deferred photo-upload note

@@ -29,7 +29,10 @@ app.set('trust proxy', 1)
 // sync (which would need updatedAt/deletion tracking added to most tables).
 app.use(compression())
 
-app.use(express.json())
+// Express's 100kb default was fine until bulk import: an 806-row product CSV
+// turned into JSON is already ~340kb. 10mb comfortably covers a full catalog
+// re-import without opening the door to arbitrarily large bodies.
+app.use(express.json({ limit: '10mb' }))
 app.use(cookieParser())
 
 app.get('/api/health', (_req, res) => {

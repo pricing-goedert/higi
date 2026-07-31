@@ -34,6 +34,10 @@ before(async () => {
 after(async () => {
   await prisma.cliente.deleteMany({ where: { cnpj: { startsWith: PREFIXO } } })
   await prisma.usuario.deleteMany({ where: { email: { startsWith: PREFIXO } } })
+  await prisma.produto.deleteMany({ where: { codigo: { startsWith: PREFIXO } } })
+  await prisma.tipo.deleteMany({ where: { nome: { startsWith: PREFIXO } } })
+  await prisma.grupo.deleteMany({ where: { nome: { startsWith: PREFIXO } } })
+  await prisma.categoria.deleteMany({ where: { nome: { startsWith: PREFIXO } } })
   await prisma.$disconnect()
 })
 
@@ -157,4 +161,119 @@ test('bulk-creating a Usuario without a senha fails, but omitting it on an updat
 
   const usuario = await prisma.usuario.findUnique({ where: { email } })
   assert.equal(usuario?.nome, 'Renomeado Sem Senha')
+})
+
+test('GET /api/importar/produtos/modelo reflects the real ERP column names', async () => {
+  const agente = await loginAdmin()
+  const res = await agente.get('/api/importar/produtos/modelo')
+  assert.equal(res.status, 200)
+  assert.equal(
+    res.text.trim(),
+    'subpro_id,subpro_comercial,subpro_qtde_por_embalagem,subpro_peso_liquido,subpro_peso_bruto,imagem,desc_n1,desc_n2,desc_n3',
+  )
+})
+
+test('produto dry run does not create the category tree, only reports the row as valid', async () => {
+  const agente = await loginAdmin()
+  const categoriaNome = `${PREFIXO} Categoria Dry`
+
+  const res = await agente.post('/api/importar/produtos').send({
+    confirmar: false,
+    linhas: [
+      {
+        subpro_id: `${PREFIXO}-produto-dryrun`,
+        subpro_comercial: 'Produto Dry Run',
+        desc_n1: categoriaNome,
+        desc_n2: `${PREFIXO} Grupo Dry`,
+        desc_n3: `${PREFIXO} Tipo Dry`,
+      },
+    ],
+  })
+
+  assert.equal(res.status, 200)
+  assert.equal(res.body.resultados[0].status, 'criado')
+
+  const categoria = await prisma.categoria.findFirst({ where: { nome: categoriaNome } })
+  assert.equal(categoria, null)
+})
+
+test('confirmed produto import creates the Categoria -> Grupo -> Tipo chain, and a second row reuses it', async () => {
+  const agente = await loginAdmin()
+  const categoriaNome = `${PREFIXO} Categoria`
+  const grupoNome = `${PREFIXO} Grupo`
+  const tipoNome = `${PREFIXO} Tipo`
+
+  const primeira = await agente.post('/api/importar/produtos').send({
+    confirmar: true,
+    linhas: [
+      {
+        subpro_id: `${PREFIXO}-produto-1`,
+        subpro_comercial: 'Produto Um',
+        subpro_qtde_por_embalagem: '40',
+        subpro_peso_liquido: '0.1963',
+        subpro_peso_bruto: '0,2092',
+        imagem: 'https://example.com/foto.jpg',
+        desc_n1: categoriaNome,
+        desc_n2: grupoNome,
+        desc_n3: tipoNome,
+      },
+    ],
+  })
+  assert.equal(primeira.body.resultados[0].status, 'criado')
+
+  const categorias = await prisma.categoria.findMany({ where: { nome: categoriaNome } })
+  assert.equal(categorias.length, 1)
+  const grupos = await prisma.grupo.findMany({ where: { nome: grupoNome, categoriaId: categorias[0].id } })
+  assert.equal(grupos.length, 1)
+  const tipos = await prisma.tipo.findMany({ where: { nome: tipoNome, grupoId: grupos[0].id } })
+  assert.equal(tipos.length, 1)
+
+  const produto1 = await prisma.produto.findUnique({ where: { codigo: `${PREFIXO}-produto-1` } })
+  assert.equal(produto1?.tipoId, tipos[0].id)
+  assert.equal(produto1?.quantidadeCaixa, 40)
+  assert.equal(produto1?.pesoLiquido, 0.1963)
+  assert.equal(produto1?.pesoBruto, 0.2092) // "0,2092" parsed as comma-decimal
+
+  const segunda = await agente.post('/api/importar/produtos').send({
+    confirmar: true,
+    linhas: [
+      {
+        subpro_id: `${PREFIXO}-produto-2`,
+        subpro_comercial: 'Produto Dois',
+        desc_n1: categoriaNome,
+        desc_n2: grupoNome,
+        desc_n3: tipoNome,
+      },
+    ],
+  })
+  assert.equal(segunda.body.resultados[0].status, 'criado')
+
+  const categoriasDepois = await prisma.categoria.findMany({ where: { nome: categoriaNome } })
+  assert.equal(categoriasDepois.length, 1, 'não deve duplicar a categoria já criada pela primeira linha')
+
+  const produto2 = await prisma.produto.findUnique({ where: { codigo: `${PREFIXO}-produto-2` } })
+  assert.equal(produto2?.tipoId, tipos[0].id)
+})
+
+test('produto import without desc_n2 attaches the Tipo directly to the Categoria (flat catalog case)', async () => {
+  const agente = await loginAdmin()
+  const categoriaNome = `${PREFIXO} Categoria Flat`
+  const tipoNome = `${PREFIXO} Tipo Flat`
+
+  const res = await agente.post('/api/importar/produtos').send({
+    confirmar: true,
+    linhas: [
+      {
+        subpro_id: `${PREFIXO}-produto-flat`,
+        subpro_comercial: 'Produto Flat',
+        desc_n1: categoriaNome,
+        desc_n3: tipoNome,
+      },
+    ],
+  })
+  assert.equal(res.body.resultados[0].status, 'criado')
+
+  const categoria = await prisma.categoria.findFirst({ where: { nome: categoriaNome } })
+  const tipo = await prisma.tipo.findFirst({ where: { nome: tipoNome, categoriaId: categoria?.id, grupoId: null } })
+  assert.ok(tipo, 'tipo deveria existir preso direto na categoria, sem grupo')
 })

@@ -4,6 +4,15 @@ import { ah } from './asyncHandler'
 
 export type LinhaImportacao = Record<string, unknown>
 
+/**
+ * Cache válido para uma única request de importação — permite que
+ * resolverFks evite repetir a mesma consulta/criação para linhas que
+ * compartilham a mesma referência (ex.: centenas de produtos sob a mesma
+ * categoria). Criado do zero a cada POST, nunca reaproveitado entre
+ * requests, então uma categoria renomeada por fora nunca fica presa nele.
+ */
+export type CacheImportacao = Map<string, unknown>
+
 export interface ColunaImportacao {
   chave: string
   obrigatorio?: boolean
@@ -26,9 +35,14 @@ export interface ConfigImportacao {
   /**
    * Resolve chaves naturais (ex.: e-mail de um representante) para os IDs
    * reais que o Prisma espera. Deve lançar um Error com mensagem amigável
-   * quando a referência não existe.
+   * quando a referência não existe e não pode ser criada.
+   *
+   * Recebe `confirmar` para os casos em que a própria resolução pode
+   * precisar criar um registro (ex.: categoria/tipo do catálogo) — na
+   * pré-visualização (confirmar=false) isso não deve gravar nada, só
+   * indicar que a linha é válida.
    */
-  resolverFks?: (linha: LinhaImportacao) => Promise<LinhaImportacao>
+  resolverFks?: (linha: LinhaImportacao, confirmar: boolean, cache: CacheImportacao) => Promise<LinhaImportacao>
   /**
    * Última transformação antes de gravar — ex.: transformar uma senha em
    * texto puro no hash que o banco espera. Recebe o registro existente
@@ -66,11 +80,16 @@ function validarObrigatorios(linha: LinhaImportacao, colunas: ColunaImportacao[]
   }
 }
 
-async function processarLinha(config: ConfigImportacao, linhaOriginal: LinhaImportacao, confirmar: boolean): Promise<ResultadoLinha['status'] | { erro: string }> {
+async function processarLinha(
+  config: ConfigImportacao,
+  linhaOriginal: LinhaImportacao,
+  confirmar: boolean,
+  cache: CacheImportacao,
+): Promise<ResultadoLinha['status'] | { erro: string }> {
   let linha = normalizarLinha(linhaOriginal, config.colunas)
   validarObrigatorios(linha, config.colunas)
 
-  if (config.resolverFks) linha = await config.resolverFks(linha)
+  if (config.resolverFks) linha = await config.resolverFks(linha, confirmar, cache)
 
   const valorChave = linha[config.chaveUnica]
   const existente = await config.model.findUnique({ where: { [config.chaveUnica]: valorChave } })
@@ -122,11 +141,12 @@ export function bulkImportRouter(config: ConfigImportacao) {
 
       const confirmar = req.body?.confirmar === true
       const resultados: ResultadoLinha[] = []
+      const cache: CacheImportacao = new Map()
 
       for (const [indice, linha] of linhas.entries()) {
         const numeroLinha = indice + 1
         try {
-          const status = await processarLinha(config, linha, confirmar)
+          const status = await processarLinha(config, linha, confirmar, cache)
           resultados.push({ linha: numeroLinha, status: status as ResultadoLinha['status'] })
         } catch (erro) {
           resultados.push({
