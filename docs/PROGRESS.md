@@ -7,10 +7,8 @@ this to see how far the build really is and *why* specific things ended up
 the way they did, especially where a decision was made mid-implementation
 and never fed back into the earlier docs.
 
-**Status: Phases 1-6 done. Phase 7's containerization half is done — the
-deploy target changed from Azure Container Apps to Vercel mid-phase (see
-below), so the deploy half is being reworked, not finished as originally
-planned.**
+**Status: Phases 1-7 done — deployed and live on Render (see below). Phase 8
+(content population + pre-expo drill) is next.**
 
 ---
 
@@ -290,23 +288,25 @@ before the deploy target changed:
   Postgres migrations, no code changes from local dev.
 
 **Deploy target changed from Azure Container Apps to Vercel's free
-(Hobby) tier** — a user decision made after the container image was
-already built and tested, not something `PLAN.md` anticipated. This is a
-real architecture mismatch, not just a hosting swap: Vercel's Hobby tier
-has no persistent container runtime — no long-lived Express process, no
-arbitrary Dockerfile deploys. It's a static-asset CDN plus short-lived
-serverless functions. See the next entry (once the adaptation work
-happens) for how the backend gets reshaped to fit that model, and what
-changes for Postgres hosting and Prisma connection handling.
+(Hobby) tier was considered, then dropped.** Vercel's Hobby tier has no
+persistent container runtime — no long-lived Express process, no arbitrary
+Dockerfile deploys, just a static-asset CDN plus short-lived serverless
+functions. Reshaping the backend into serverless functions (plus moving
+Postgres to a serverless-friendly managed provider) was real rework for no
+functional gain at trade-show scale, so it was dropped in favor of Render.
+
+**Actually deployed to Render instead**, reusing the existing root
+`Dockerfile` completely unchanged (`render.yaml`) — Render runs it as a
+real container with a persistent process, so none of the Vercel
+serverless/Postgres-provider rework was needed. This is now the live
+deploy target, not a throwaway test as `render.yaml`'s own comment
+(written before this was decided) still says.
 
 ---
 
 ## What's next
 
-Reworking Phase 7's deploy half for Vercel instead of Azure Container
-Apps — adapting the Express backend to run as Vercel serverless
-functions, moving Postgres to a serverless-friendly managed provider
-(Neon/Supabase/Vercel Postgres), and moving `prisma migrate deploy` out of
-server startup into a build-time step. Then **Phase 8** (real content
-population from ERP CSVs, create real `Usuario` accounts for all staff,
-pre-expo Lighthouse/install drill).
+**Phase 8**: real content population from ERP CSVs, create real `Usuario`
+accounts for all staff, pre-expo Lighthouse/install drill (Android's PWA
+installability gap is already fixed — see the icon-manifest fix above/in
+git history).

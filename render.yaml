@@ -1,7 +1,7 @@
-# Render Blueprint — a quick, throwaway deploy for testing today. The
-# planned permanent home is Azure Container Apps (docs/PLAN.md's Phase 7);
-# this reuses the same root Dockerfile unchanged to get something live fast
-# in the meantime. See docs/PROGRESS.md for the reasoning.
+# Render Blueprint — the actual deploy target (Azure Container Apps and
+# Vercel were both considered and dropped; see docs/PROGRESS.md). Reuses
+# the same root Dockerfile unchanged — Render runs it as a real container,
+# so none of the serverless rework Vercel would have required was needed.
 services:
   - type: web
     name: higiexpo
