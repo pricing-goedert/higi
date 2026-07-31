@@ -97,38 +97,44 @@ const resultadosBusca = computed(() => {
         {{ resultadosBusca.length }} resultado{{ resultadosBusca.length === 1 ? '' : 's' }}
       </p>
       <p v-if="resultadosBusca.length === 0" class="text-muted">Nenhum produto encontrado.</p>
-      <RowCard
-        v-for="produto in resultadosBusca"
-        :key="produto.id"
-        :to="{ name: 'produto-detalhe', params: { id: produto.id } }"
-        :icon="Package"
-        :title="produto.nome"
-        :subtitle="subtituloProduto(produto)"
-      />
+      <div class="lg:grid lg:grid-cols-2 lg:gap-x-3.5 xl:grid-cols-3">
+        <RowCard
+          v-for="produto in resultadosBusca"
+          :key="produto.id"
+          :to="{ name: 'produto-detalhe', params: { id: produto.id } }"
+          :icon="Package"
+          :title="produto.nome"
+          :subtitle="subtituloProduto(produto)"
+        />
+      </div>
     </template>
 
     <template v-else-if="gruposDaCategoria.length > 0">
       <SectionLabel>Linhas</SectionLabel>
-      <RowCard
-        v-for="grupo in gruposDaCategoria"
-        :key="grupo.id"
-        :to="{ name: 'grupo-detalhe', params: { id: grupo.id } }"
-        :icon="Package"
-        :title="grupo.nome"
-      />
+      <div class="lg:grid lg:grid-cols-2 lg:gap-x-3.5 xl:grid-cols-3">
+        <RowCard
+          v-for="grupo in gruposDaCategoria"
+          :key="grupo.id"
+          :to="{ name: 'grupo-detalhe', params: { id: grupo.id } }"
+          :icon="Package"
+          :title="grupo.nome"
+        />
+      </div>
     </template>
 
     <template v-else>
       <SectionLabel>Tipos</SectionLabel>
       <p v-if="tiposDiretos.length === 0" class="text-muted">Nenhum tipo cadastrado ainda.</p>
-      <RowCard
-        v-for="tipo in tiposDiretos"
-        :key="tipo.id"
-        :to="{ name: 'tipo-detalhe', params: { id: tipo.id } }"
-        :icon="Package"
-        :title="tipo.nome"
-        :subtitle="`${contarProdutos(tipo.id)} produto${contarProdutos(tipo.id) === 1 ? '' : 's'}`"
-      />
+      <div class="lg:grid lg:grid-cols-2 lg:gap-x-3.5 xl:grid-cols-3">
+        <RowCard
+          v-for="tipo in tiposDiretos"
+          :key="tipo.id"
+          :to="{ name: 'tipo-detalhe', params: { id: tipo.id } }"
+          :icon="Package"
+          :title="tipo.nome"
+          :subtitle="`${contarProdutos(tipo.id)} produto${contarProdutos(tipo.id) === 1 ? '' : 's'}`"
+        />
+      </div>
     </template>
   </div>
 </template>

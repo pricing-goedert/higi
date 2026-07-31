@@ -37,14 +37,16 @@ const resultados = computed(() => {
     <template v-else>
       <p class="mb-3 text-[13.5px] text-muted">{{ resultados.length }} resultado{{ resultados.length === 1 ? '' : 's' }}</p>
       <p v-if="resultados.length === 0" class="text-muted">Nenhum cliente encontrado.</p>
-      <RowCard
-        v-for="cliente in resultados"
-        :key="cliente.id"
-        :to="{ name: 'cliente-detalhe', params: { id: cliente.id } }"
-        :title="cliente.razaoSocial"
-        :subtitle="mascaraCnpj(cliente.cnpj)"
-        :avatar-nome="cliente.razaoSocial"
-      />
+      <div class="lg:grid lg:grid-cols-2 lg:gap-x-3.5 xl:grid-cols-3">
+        <RowCard
+          v-for="cliente in resultados"
+          :key="cliente.id"
+          :to="{ name: 'cliente-detalhe', params: { id: cliente.id } }"
+          :title="cliente.razaoSocial"
+          :subtitle="mascaraCnpj(cliente.cnpj)"
+          :avatar-nome="cliente.razaoSocial"
+        />
+      </div>
     </template>
   </div>
 </template>

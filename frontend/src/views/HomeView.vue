@@ -59,7 +59,7 @@ function aoRolar() {
       <input
         v-model="buscaGlobal"
         placeholder="Buscar representante, cliente..."
-        class="w-full bg-transparent text-ink outline-none placeholder:text-faint"
+        class="w-full bg-transparent text-ink outline-hidden placeholder:text-faint"
       />
     </div>
   </form>
@@ -68,7 +68,7 @@ function aoRolar() {
     <button
       type="button"
       :disabled="sync.sincronizando"
-      class="mb-4 mt-4 flex w-full items-center justify-between rounded-field bg-icon-soft px-3.5 py-2.5 text-left disabled:opacity-70"
+      class="mb-4 mt-4 flex w-full items-center justify-between rounded-field bg-icon-soft px-3.5 py-2.5 text-left disabled:opacity-70 lg:hidden"
       @click="sync.sincronizar()"
     >
       <span class="text-[13px]" :class="semConexao ? 'text-danger' : 'text-primary'">
@@ -82,12 +82,19 @@ function aoRolar() {
     </button>
 
     <SectionLabel>Destaques</SectionLabel>
-    <div ref="carrosselRef" class="no-scrollbar flex snap-x snap-mandatory gap-3.5 overflow-x-auto" @scroll="aoRolar">
+    <!-- Swipeable one-at-a-time carousel on phones; on desktop there's room to
+         show all three at once, so the scroll-snap row becomes a plain grid
+         and the dot indicators below are hidden. -->
+    <div
+      ref="carrosselRef"
+      class="no-scrollbar flex snap-x snap-mandatory gap-3.5 overflow-x-auto lg:grid lg:grid-cols-3 lg:overflow-x-visible"
+      @scroll="aoRolar"
+    >
       <RouterLink
         v-for="slide in slides"
         :key="slide.titulo"
         :to="slide.to"
-        class="flex w-full shrink-0 snap-start flex-col gap-1.5 rounded-card bg-primary p-5 text-white"
+        class="flex w-full shrink-0 snap-start flex-col gap-1.5 rounded-card bg-primary p-5 text-white lg:w-auto"
       >
         <component :is="slide.icon" :size="28" class="text-white/90" />
         <h3 class="text-[15.5px] font-semibold">{{ slide.titulo }}</h3>
@@ -95,7 +102,7 @@ function aoRolar() {
         <small class="mt-1 text-[11.5px] text-white/55">Toque para abrir</small>
       </RouterLink>
     </div>
-    <div class="mt-3 flex justify-center gap-1.5">
+    <div class="mt-3 flex justify-center gap-1.5 lg:hidden">
       <div
         v-for="(slide, i) in slides"
         :key="slide.titulo"
@@ -105,7 +112,7 @@ function aoRolar() {
     </div>
 
     <SectionLabel dot-class="bg-comercial">Comercial</SectionLabel>
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
       <MenuCard :to="{ name: 'representantes' }" :icon="Briefcase" icon-class="bg-comercial-soft text-comercial">
         Pesquisa de<br />Representante
       </MenuCard>
@@ -118,14 +125,14 @@ function aoRolar() {
     </div>
 
     <SectionLabel dot-class="bg-produtos">Produtos</SectionLabel>
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
       <MenuCard :to="{ name: 'produtos' }" :icon="Package" icon-class="bg-produtos-soft text-produtos" full-width>
         Consulta de Produtos
       </MenuCard>
     </div>
 
     <SectionLabel dot-class="bg-conteudo">Conteúdo</SectionLabel>
-    <div class="grid grid-cols-2 gap-4 pb-2">
+    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4 pb-2">
       <MenuCard :to="{ name: 'programacao' }" :icon="Calendar" icon-class="bg-conteudo-soft text-conteudo">
         Programação<br />da Feira
       </MenuCard>
@@ -142,7 +149,7 @@ function aoRolar() {
 
     <template v-if="auth.usuario?.isAdmin">
       <SectionLabel dot-class="bg-comercial">Administração</SectionLabel>
-      <div class="grid grid-cols-2 gap-4 pb-2">
+      <div class="grid grid-cols-2 gap-4 lg:grid-cols-4 pb-2">
         <MenuCard :to="{ name: 'admin-usuarios' }" :icon="Settings" icon-class="bg-comercial-soft text-comercial" full-width>
           Gestão de Conteúdo
         </MenuCard>

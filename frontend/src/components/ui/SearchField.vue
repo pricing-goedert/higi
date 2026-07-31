@@ -11,7 +11,7 @@ defineEmits<{ 'update:modelValue': [string] }>()
     <input
       :value="modelValue"
       :placeholder="placeholder"
-      class="w-full bg-transparent text-ink outline-none placeholder:text-faint"
+      class="w-full bg-transparent text-ink outline-hidden placeholder:text-faint"
       @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
     />
   </div>

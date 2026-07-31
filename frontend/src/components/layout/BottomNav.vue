@@ -25,7 +25,7 @@ function estaAtiva(nomeRota: string) {
 
 <template>
   <nav
-    class="fixed inset-x-0 bottom-0 z-10 mx-auto flex max-w-shell justify-around border-t border-divider bg-card"
+    class="fixed inset-x-0 bottom-0 z-10 mx-auto flex max-w-shell justify-around border-t border-divider bg-card lg:hidden"
     style="padding-bottom: env(safe-area-inset-bottom)"
   >
     <RouterLink

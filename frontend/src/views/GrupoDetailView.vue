@@ -44,13 +44,15 @@ function contarProdutos(tipoId: string): number {
     <p v-if="erro" class="text-danger">{{ erro }}</p>
     <p v-else-if="carregando" class="text-muted">Carregando...</p>
     <p v-else-if="tipos.length === 0" class="text-muted">Nenhum tipo cadastrado ainda.</p>
-    <RowCard
-      v-for="tipo in tipos"
-      :key="tipo.id"
-      :to="{ name: 'tipo-detalhe', params: { id: tipo.id } }"
-      :icon="Package"
-      :title="tipo.nome"
-      :subtitle="`${contarProdutos(tipo.id)} produto${contarProdutos(tipo.id) === 1 ? '' : 's'}`"
-    />
+    <div class="lg:grid lg:grid-cols-2 lg:gap-x-3.5 xl:grid-cols-3">
+      <RowCard
+        v-for="tipo in tipos"
+        :key="tipo.id"
+        :to="{ name: 'tipo-detalhe', params: { id: tipo.id } }"
+        :icon="Package"
+        :title="tipo.nome"
+        :subtitle="`${contarProdutos(tipo.id)} produto${contarProdutos(tipo.id) === 1 ? '' : 's'}`"
+      />
+    </div>
   </div>
 </template>

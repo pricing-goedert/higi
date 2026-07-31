@@ -46,14 +46,16 @@ function subtitulo(produto: Produto): string {
     <template v-else>
       <p class="mb-3 text-[13.5px] text-muted">{{ produtos.length }} produto{{ produtos.length === 1 ? '' : 's' }}</p>
       <p v-if="produtos.length === 0" class="text-muted">Nenhum produto cadastrado ainda.</p>
-      <RowCard
-        v-for="produto in produtos"
-        :key="produto.id"
-        :to="{ name: 'produto-detalhe', params: { id: produto.id } }"
-        :icon="Package"
-        :title="produto.nome"
-        :subtitle="subtitulo(produto)"
-      />
+      <div class="lg:grid lg:grid-cols-2 lg:gap-x-3.5 xl:grid-cols-3">
+        <RowCard
+          v-for="produto in produtos"
+          :key="produto.id"
+          :to="{ name: 'produto-detalhe', params: { id: produto.id } }"
+          :icon="Package"
+          :title="produto.nome"
+          :subtitle="subtitulo(produto)"
+        />
+      </div>
     </template>
   </div>
 </template>
