@@ -79,18 +79,20 @@ const itens = computed<ItemLead[]>(() => {
     <p v-else-if="carregando" class="text-muted">Carregando...</p>
     <p v-else-if="itens.length === 0" class="text-muted">Nenhum lead cadastrado ainda.</p>
 
-    <div v-for="item in itens" :key="item.chave" class="mb-3.5 rounded-card bg-card p-[18px] shadow-card">
-      <div class="flex items-center gap-2.5">
-        <div class="flex-1 text-[15.5px] font-semibold text-ink">{{ item.razaoSocial }}</div>
-        <span class="rounded-chip bg-icon-soft px-2.5 py-1 text-[12.5px] font-medium text-primary">{{ item.tipo }}</span>
-      </div>
-      <div class="mt-1 text-[13.5px] text-muted">{{ mascaraCnpj(item.cnpj) }}</div>
-      <div class="mt-1 text-[13.5px] text-muted">{{ item.contato }} · {{ mascaraTelefone(item.telefone) }}</div>
-      <div class="mt-1.5 flex items-center gap-2 text-[12.5px] text-faint">
-        <span>{{ tempoRelativo(item.quando) }}</span>
-        <span v-if="item.pendente" class="rounded-chip bg-icon-soft px-2 py-0.5 font-medium text-primary">
-          Pendente de sincronização
-        </span>
+    <div class="lg:grid lg:grid-cols-2 lg:gap-3.5 xl:grid-cols-3">
+      <div v-for="item in itens" :key="item.chave" class="mb-3.5 rounded-card bg-card p-[18px] shadow-card lg:mb-0">
+        <div class="flex items-center gap-2.5">
+          <div class="flex-1 text-[15.5px] font-semibold text-ink">{{ item.razaoSocial }}</div>
+          <span class="rounded-chip bg-icon-soft px-2.5 py-1 text-[12.5px] font-medium text-primary">{{ item.tipo }}</span>
+        </div>
+        <div class="mt-1 text-[13.5px] text-muted">{{ mascaraCnpj(item.cnpj) }}</div>
+        <div class="mt-1 text-[13.5px] text-muted">{{ item.contato }} · {{ mascaraTelefone(item.telefone) }}</div>
+        <div class="mt-1.5 flex items-center gap-2 text-[12.5px] text-faint">
+          <span>{{ tempoRelativo(item.quando) }}</span>
+          <span v-if="item.pendente" class="rounded-chip bg-icon-soft px-2 py-0.5 font-medium text-primary">
+            Pendente de sincronização
+          </span>
+        </div>
       </div>
     </div>
   </div>

@@ -165,15 +165,15 @@ async function salvar() {
 
         <div class="mb-3.5">
           <label class="mb-1.5 block text-[13px] font-semibold text-muted">Título</label>
-          <input v-model="titulo" class="h-12 w-full rounded-field border-[1.5px] border-divider bg-card px-3.5 text-ink outline-none focus:border-primary" />
+          <input v-model="titulo" class="h-12 w-full rounded-field border-[1.5px] border-divider bg-card px-3.5 text-ink outline-hidden focus:border-primary" />
         </div>
         <div class="mb-3.5">
           <label class="mb-1.5 block text-[13px] font-semibold text-muted">Descrição</label>
-          <textarea v-model="descricao" rows="2" class="w-full rounded-field border-[1.5px] border-divider bg-card px-3.5 py-2.5 text-ink outline-none focus:border-primary" />
+          <textarea v-model="descricao" rows="2" class="w-full rounded-field border-[1.5px] border-divider bg-card px-3.5 py-2.5 text-ink outline-hidden focus:border-primary" />
         </div>
         <div class="mb-4">
           <label class="mb-1.5 block text-[13px] font-semibold text-muted">Ordem</label>
-          <input v-model.number="ordem" type="number" class="h-12 w-full rounded-field border-[1.5px] border-divider bg-card px-3.5 text-ink outline-none focus:border-primary" />
+          <input v-model.number="ordem" type="number" class="h-12 w-full rounded-field border-[1.5px] border-divider bg-card px-3.5 text-ink outline-hidden focus:border-primary" />
         </div>
 
         <div class="mb-2 flex items-center justify-between">
@@ -191,13 +191,13 @@ async function salvar() {
           <input
             v-model="secao.titulo"
             placeholder="Título da seção (opcional)"
-            class="mb-2 h-11 w-full rounded-field border-[1.5px] border-divider bg-card px-3 text-ink outline-none focus:border-primary"
+            class="mb-2 h-11 w-full rounded-field border-[1.5px] border-divider bg-card px-3 text-ink outline-hidden focus:border-primary"
           />
           <textarea
             v-model="secao.texto"
             placeholder="Texto"
             rows="2"
-            class="w-full rounded-field border-[1.5px] border-divider bg-card px-3 py-2 text-ink outline-none focus:border-primary"
+            class="w-full rounded-field border-[1.5px] border-divider bg-card px-3 py-2 text-ink outline-hidden focus:border-primary"
           />
         </div>
         <p v-if="!secoes.length" class="mb-3 text-[0.8rem] text-muted">Nenhuma seção ainda.</p>

@@ -2,6 +2,7 @@
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import BottomNav from '@/components/layout/BottomNav.vue'
+import AppSidebar from '@/components/layout/AppSidebar.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useSyncStore } from '@/stores/sync'
 import { enviarPendentes } from '@/lib/outbox'
@@ -36,10 +37,24 @@ onUnmounted(() => sync.pararMonitoramento())
 
 <template>
   <RouterView v-if="route.meta.admin" />
-  <div v-else class="relative mx-auto min-h-screen max-w-shell bg-bg shadow-shell">
-    <div :class="route.meta.semNav ? '' : 'pb-24'">
-      <RouterView />
-    </div>
-    <BottomNav v-if="!route.meta.semNav" />
+
+  <!-- Login: no nav either way, so it keeps the phone-width shell centered on
+       every viewport rather than stretching a lone form across a desktop. -->
+  <div v-else-if="route.meta.semNav" class="mx-auto min-h-screen max-w-shell bg-bg shadow-shell">
+    <RouterView />
   </div>
+
+  <!-- Everything else. Below lg this is byte-for-byte the old shell: a 460px
+       column with the bottom nav. From lg up the sidebar takes over (pl-64
+       clears its fixed width), the shell stops constraining width, and the
+       content re-centers in a wider column. -->
+  <template v-else>
+    <AppSidebar />
+    <div class="mx-auto min-h-screen max-w-shell bg-bg shadow-shell lg:max-w-none lg:pl-64 lg:shadow-none">
+      <div class="pb-24 lg:mx-auto lg:max-w-5xl lg:px-6 lg:pb-12">
+        <RouterView />
+      </div>
+      <BottomNav />
+    </div>
+  </template>
 </template>

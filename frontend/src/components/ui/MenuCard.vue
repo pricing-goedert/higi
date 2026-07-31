@@ -16,7 +16,7 @@ withDefaults(
   <RouterLink
     :to="to"
     class="flex flex-col items-center justify-center gap-2.5 rounded-card bg-card p-[18px] text-center shadow-card active:opacity-80"
-    :class="fullWidth ? 'col-span-2 flex-row justify-start text-left' : ''"
+    :class="fullWidth ? 'col-span-2 flex-row justify-start text-left lg:col-span-4' : ''"
   >
     <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full" :class="iconClass">
       <component :is="icon" :size="24" />

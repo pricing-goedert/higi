@@ -221,7 +221,7 @@ async function salvar() {
         v-model="observacoes"
         placeholder="Digite suas observações..."
         rows="3"
-        class="w-full rounded-field border-[1.5px] border-divider bg-card px-3.5 py-3 text-ink outline-none focus:border-primary focus:shadow-focus-ring"
+        class="w-full rounded-field border-[1.5px] border-divider bg-card px-3.5 py-3 text-ink outline-hidden focus:border-primary focus:shadow-focus-ring"
       />
     </div>
 

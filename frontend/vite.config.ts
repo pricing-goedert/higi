@@ -2,11 +2,16 @@ import { fileURLToPath, URL } from 'node:url'
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   plugins: [
     vue(),
+    // Tailwind 4 runs as a Vite plugin instead of a PostCSS plugin — this is
+    // what replaced postcss.config.js + autoprefixer. Kept before VitePWA so
+    // the service worker still sees the final emitted CSS.
+    tailwindcss(),
     VitePWA({
       // Auto-activates + reloads on the next open rather than prompting —
       // the boring default, and docs/PLAN.md flags the service-worker

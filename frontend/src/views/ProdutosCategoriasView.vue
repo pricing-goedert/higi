@@ -29,13 +29,15 @@ onMounted(async () => {
     <p v-if="erro" class="text-danger">{{ erro }}</p>
     <p v-else-if="carregando" class="text-muted">Carregando...</p>
     <p v-else-if="categorias.length === 0" class="text-muted">Nenhuma categoria cadastrada ainda.</p>
-    <RowCard
-      v-for="categoria in categorias"
-      :key="categoria.id"
-      :to="{ name: 'categoria-detalhe', params: { id: categoria.id } }"
-      :icon="Package"
-      :title="categoria.nome"
-      :subtitle="categoria.descricao ?? undefined"
-    />
+    <div class="lg:grid lg:grid-cols-2 lg:gap-x-3.5 xl:grid-cols-3">
+      <RowCard
+        v-for="categoria in categorias"
+        :key="categoria.id"
+        :to="{ name: 'categoria-detalhe', params: { id: categoria.id } }"
+        :icon="Package"
+        :title="categoria.nome"
+        :subtitle="categoria.descricao ?? undefined"
+      />
+    </div>
   </div>
 </template>

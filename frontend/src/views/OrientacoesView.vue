@@ -31,13 +31,15 @@ const orientacoes = computed(() => [...todas.value].sort((a, b) => a.ordem - b.o
     <p v-if="erro" class="text-danger">{{ erro }}</p>
     <p v-else-if="carregando" class="text-muted">Carregando...</p>
     <p v-else-if="orientacoes.length === 0" class="text-muted">Nenhuma orientação cadastrada ainda.</p>
-    <RowCard
-      v-for="orientacao in orientacoes"
-      :key="orientacao.id"
-      :to="{ name: 'orientacao-detalhe', params: { id: orientacao.id } }"
-      :icon="Info"
-      :title="orientacao.titulo"
-      :subtitle="orientacao.descricao ?? undefined"
-    />
+    <div class="lg:grid lg:grid-cols-2 lg:gap-x-3.5">
+      <RowCard
+        v-for="orientacao in orientacoes"
+        :key="orientacao.id"
+        :to="{ name: 'orientacao-detalhe', params: { id: orientacao.id } }"
+        :icon="Info"
+        :title="orientacao.titulo"
+        :subtitle="orientacao.descricao ?? undefined"
+      />
+    </div>
   </div>
 </template>

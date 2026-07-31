@@ -32,28 +32,30 @@ onMounted(async () => {
     <p v-else-if="carregando" class="text-muted">Carregando...</p>
     <p v-else-if="restaurantes.length === 0" class="text-muted">Nenhum restaurante cadastrado ainda.</p>
 
-    <RouterLink
-      v-for="restaurante in restaurantes"
-      :key="restaurante.id"
-      :to="{ name: 'restaurante-detalhe', params: { id: restaurante.id } }"
-      class="mb-2.5 flex items-center gap-3.5 rounded-card bg-card p-[18px] shadow-card active:opacity-80"
-    >
-      <Coffee :size="24" class="shrink-0 text-ink" />
-      <div class="min-w-0 flex-1">
-        <div class="truncate text-[15.5px] font-semibold text-ink">{{ restaurante.nome }}</div>
-        <div class="mt-1.5 flex items-center gap-2">
-          <span
-            v-if="restaurante.subcategoria"
-            class="rounded-chip bg-icon-soft px-2.5 py-1 text-[12px] font-medium text-primary"
-          >
-            {{ restaurante.subcategoria }}
-          </span>
-          <span v-if="restaurante.distanciaMetros != null" class="text-[13px] text-muted">
-            {{ restaurante.distanciaMetros }} m
-          </span>
+    <div class="lg:grid lg:grid-cols-2 lg:gap-3.5 xl:grid-cols-3">
+      <RouterLink
+        v-for="restaurante in restaurantes"
+        :key="restaurante.id"
+        :to="{ name: 'restaurante-detalhe', params: { id: restaurante.id } }"
+        class="mb-2.5 flex items-center gap-3.5 rounded-card bg-card p-[18px] shadow-card active:opacity-80 lg:mb-0"
+      >
+        <Coffee :size="24" class="shrink-0 text-ink" />
+        <div class="min-w-0 flex-1">
+          <div class="truncate text-[15.5px] font-semibold text-ink">{{ restaurante.nome }}</div>
+          <div class="mt-1.5 flex items-center gap-2">
+            <span
+              v-if="restaurante.subcategoria"
+              class="rounded-chip bg-icon-soft px-2.5 py-1 text-[12px] font-medium text-primary"
+            >
+              {{ restaurante.subcategoria }}
+            </span>
+            <span v-if="restaurante.distanciaMetros != null" class="text-[13px] text-muted">
+              {{ restaurante.distanciaMetros }} m
+            </span>
+          </div>
         </div>
-      </div>
-      <ChevronRight :size="20" class="shrink-0 text-faint" />
-    </RouterLink>
+        <ChevronRight :size="20" class="shrink-0 text-faint" />
+      </RouterLink>
+    </div>
   </div>
 </template>
