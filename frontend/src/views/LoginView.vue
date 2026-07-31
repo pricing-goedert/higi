@@ -41,7 +41,7 @@ async function enviar() {
         type="email"
         required
         autocomplete="username"
-        class="mb-3.5 h-14 w-full rounded-field border-[1.5px] border-divider px-3.5 text-ink outline-none focus:border-primary focus:shadow-focus-ring"
+        class="mb-3.5 h-14 w-full rounded-field border-[1.5px] border-divider px-3.5 text-ink outline-hidden focus:border-primary focus:shadow-focus-ring"
       />
 
       <label class="mb-1.5 block text-[13px] font-semibold text-muted" for="senha">Senha</label>
@@ -51,7 +51,7 @@ async function enviar() {
         type="password"
         required
         autocomplete="current-password"
-        class="h-14 w-full rounded-field border-[1.5px] border-divider px-3.5 text-ink outline-none focus:border-primary focus:shadow-focus-ring"
+        class="h-14 w-full rounded-field border-[1.5px] border-divider px-3.5 text-ink outline-hidden focus:border-primary focus:shadow-focus-ring"
       />
 
       <p v-if="erro" class="mt-3 text-[13.5px] text-danger" role="alert">{{ erro }}</p>

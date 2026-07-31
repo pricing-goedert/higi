@@ -31,13 +31,15 @@ function buscar() {
 
     <template v-if="recentes.length > 0">
       <SectionLabel>Buscas recentes</SectionLabel>
-      <RowCard
-        v-for="recente in recentes"
-        :key="recente.id"
-        :to="{ name: 'cliente-detalhe', params: { id: recente.id } }"
-        :title="recente.razaoSocial"
-        :subtitle="mascaraCnpj(recente.cnpj)"
-      />
+      <div class="lg:grid lg:grid-cols-2 lg:gap-x-3.5 xl:grid-cols-3">
+        <RowCard
+          v-for="recente in recentes"
+          :key="recente.id"
+          :to="{ name: 'cliente-detalhe', params: { id: recente.id } }"
+          :title="recente.razaoSocial"
+          :subtitle="mascaraCnpj(recente.cnpj)"
+        />
+      </div>
     </template>
   </div>
 </template>

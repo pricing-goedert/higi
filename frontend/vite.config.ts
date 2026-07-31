@@ -2,11 +2,16 @@ import { fileURLToPath, URL } from 'node:url'
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   plugins: [
     vue(),
+    // Tailwind 4 runs as a Vite plugin instead of a PostCSS plugin — this is
+    // what replaced postcss.config.js + autoprefixer. Kept before VitePWA so
+    // the service worker still sees the final emitted CSS.
+    tailwindcss(),
     VitePWA({
       // Auto-activates + reloads on the next open rather than prompting —
       // the boring default, and docs/PLAN.md flags the service-worker
@@ -32,12 +37,20 @@ export default defineConfig({
         display: 'standalone',
         start_url: '/',
         icons: [
+          // Upscaled from the source 121x121 goedert-icon.png — Chrome on
+          // Android requires 192/512 sizes in the manifest to consider the
+          // app installable at all (iOS Safari has no such gate, which is
+          // why "Add to Home Screen" worked there but Android only offered
+          // a plain shortcut). Real higher-res source art should replace
+          // these before the Phase 8 pre-expo Lighthouse audit.
           {
-            // Placeholder: the only Goedert icon asset available today is
-            // 121x121. Real 192/512 art needs to replace this before the
-            // Phase 8 pre-expo Lighthouse audit — see docs/PROGRESS.md.
-            src: 'goedert-icon.png',
-            sizes: '121x121',
+            src: 'icon-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: 'icon-512.png',
+            sizes: '512x512',
             type: 'image/png',
           },
         ],

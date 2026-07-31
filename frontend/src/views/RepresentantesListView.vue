@@ -79,14 +79,16 @@ function subtitulo(usuario: Usuario): string {
     <template v-else>
       <p class="my-3 text-[13.5px] text-muted">{{ resultados.length }} resultado{{ resultados.length === 1 ? '' : 's' }}</p>
       <p v-if="resultados.length === 0" class="text-muted">Nenhum representante encontrado.</p>
-      <RowCard
-        v-for="usuario in resultados"
-        :key="usuario.id"
-        :to="{ name: 'representante-detalhe', params: { id: usuario.id } }"
-        :title="usuario.nome"
-        :subtitle="subtitulo(usuario)"
-        :avatar-nome="usuario.nome"
-      />
+      <div class="lg:grid lg:grid-cols-2 lg:gap-x-3.5 xl:grid-cols-3">
+        <RowCard
+          v-for="usuario in resultados"
+          :key="usuario.id"
+          :to="{ name: 'representante-detalhe', params: { id: usuario.id } }"
+          :title="usuario.nome"
+          :subtitle="subtitulo(usuario)"
+          :avatar-nome="usuario.nome"
+        />
+      </div>
     </template>
   </div>
 </template>

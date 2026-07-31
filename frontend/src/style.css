@@ -5,9 +5,47 @@
 @import '@fontsource/inter/600.css';
 @import '@fontsource/inter/700.css';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+/* Design tokens. Tailwind 4 reads these straight from CSS — this @theme block
+   replaced tailwind.config.js, which no longer exists. Ported 1:1 from it, and
+   originally from docs/design-frame/styles.css. The v3 `content:` array is gone
+   too: v4 detects sources on its own (`@source` if something ever escapes). */
+@theme {
+  --color-primary: #143c52;
+  --color-bg: #f8fafc;
+  --color-card: #ffffff;
+  --color-divider: #e7ecf1;
+  --color-ink: #1e293b; /* --text  */
+  --color-muted: #64748b; /* --text2 */
+  --color-faint: #94a3b8; /* --text3 */
+  --color-icon-soft: #e9f0f5; /* --icon-circle */
+  --color-danger: #ef4444; /* --red, validation states */
+  /* Home screen's 3 menu sections — hardcoded in design-frame's index.html,
+     not the (unused) --green/--orange root vars. */
+  --color-comercial: #143c52;
+  --color-comercial-soft: #e9f0f5;
+  --color-produtos: #15803d;
+  --color-produtos-soft: #e5f6ec;
+  --color-conteudo: #b45309;
+  --color-conteudo-soft: #fdf1df;
+
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --radius-hero: 28px;
+  --radius-card: 20px;
+  --radius-search: 18px;
+  --radius-btn: 16px;
+  --radius-field: 14px;
+  --radius-chip: 10px;
+
+  --shadow-card: 0 6px 16px rgba(15, 23, 42, 0.06);
+  --shadow-search: 0 8px 20px rgba(15, 23, 42, 0.1);
+  --shadow-shell: 0 0 40px rgba(15, 23, 42, 0.08);
+  --shadow-focus-ring: 0 0 0 4px rgba(20, 60, 82, 0.08);
+
+  --container-shell: 460px; /* feeds max-w-shell */
+}
 
 body {
   @apply bg-bg font-sans text-ink;

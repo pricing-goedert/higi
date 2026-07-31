@@ -264,14 +264,14 @@ defineExpose({ carregar })
             v-if="campo.tipo === 'textarea'"
             :value="(form[campo.chave] as string) ?? ''"
             rows="3"
-            class="w-full rounded-field border-[1.5px] border-divider bg-card px-3.5 py-2.5 text-ink outline-none focus:border-primary"
+            class="w-full rounded-field border-[1.5px] border-divider bg-card px-3.5 py-2.5 text-ink outline-hidden focus:border-primary"
             @input="form[campo.chave] = ($event.target as HTMLTextAreaElement).value"
           />
 
           <select
             v-else-if="campo.tipo === 'select'"
             :value="(form[campo.chave] as string) ?? ''"
-            class="h-12 w-full rounded-field border-[1.5px] border-divider bg-card px-3.5 text-ink outline-none focus:border-primary"
+            class="h-12 w-full rounded-field border-[1.5px] border-divider bg-card px-3.5 text-ink outline-hidden focus:border-primary"
             @change="form[campo.chave] = ($event.target as HTMLSelectElement).value || null"
           >
             <option value="">Nenhum</option>
@@ -303,7 +303,7 @@ defineExpose({ carregar })
             "
             :value="(form[campo.chave] as string) ?? ''"
             :placeholder="campo.tipo === 'senha' && modoEdicao ? 'Deixe em branco para manter a atual' : undefined"
-            class="h-12 w-full rounded-field border-[1.5px] border-divider bg-card px-3.5 text-ink outline-none focus:border-primary"
+            class="h-12 w-full rounded-field border-[1.5px] border-divider bg-card px-3.5 text-ink outline-hidden focus:border-primary"
             @input="aoDigitar(campo, $event)"
           />
         </div>
