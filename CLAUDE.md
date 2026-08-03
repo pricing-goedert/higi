@@ -31,7 +31,9 @@ technical decisions and their reasoning.
   (functional spec), `PLAN.md` (phased build order and done-when criteria),
   `PROGRESS.md` (running log of what's actually been built and the
   implementation-level decisions made along the way — read this before
-  `PLAN.md` to see how far the build actually is), `README.md`. This file
+  `PLAN.md` to see how far the build actually is), `TESTING.md` (**read
+  before adding or changing any backend route — every one ships with
+  tests, in the shape that file describes**), `README.md`. This file
   (`CLAUDE.md`) stays at the repo root by convention (auto-loaded by Claude
   Code); the rest of the docs live in `docs/`.
 - `frontend/` and `backend/` — the real app, per `docs/ARCHITECTURE.md`.
