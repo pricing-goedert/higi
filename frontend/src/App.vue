@@ -36,7 +36,11 @@ onUnmounted(() => sync.pararMonitoramento())
 </script>
 
 <template>
-  <RouterView v-if="route.meta.admin" />
+  <div v-if="auth.carregando" class="flex min-h-screen items-center justify-center bg-bg">
+    <div class="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-primary" />
+  </div>
+
+  <RouterView v-else-if="route.meta.admin" />
 
   <!-- Login: no nav either way, so it keeps the phone-width shell centered on
        every viewport rather than stretching a lone form across a desktop. -->
