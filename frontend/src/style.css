@@ -51,6 +51,19 @@ body {
   @apply bg-bg font-sans text-ink;
 }
 
+/* Chrome/autofill paints its own background (usually a light blue/yellow)
+   over inputs it recognizes, clashing with the design's field colors. The
+   box-shadow inset trick repaints over it without touching autocomplete
+   behavior itself. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-ink);
+  -webkit-box-shadow: 0 0 0 1000px var(--color-card) inset;
+  box-shadow: 0 0 0 1000px var(--color-card) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 .no-scrollbar {
   scrollbar-width: none;
   -ms-overflow-style: none;
