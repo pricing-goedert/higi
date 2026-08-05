@@ -69,16 +69,24 @@ function aoRolar() {
       type="button"
       :disabled="sync.sincronizando"
       class="mb-4 mt-4 flex w-full items-center justify-between rounded-field bg-icon-soft px-3.5 py-2.5 text-left disabled:opacity-70 lg:hidden"
-      @click="sync.sincronizar()"
+      @click="sync.sincronizar({ forcar: true })"
     >
       <span class="text-[13px]" :class="semConexao ? 'text-danger' : 'text-primary'">
         <template v-if="sync.sincronizando">Atualizando dados...</template>
         <template v-else-if="semConexao">Sem conexão</template>
         <template v-else-if="sync.erro">{{ sync.erro }}</template>
+        <!-- Só o download das fotos é lento o bastante para o rep precisar
+             saber que ainda está rolando — é o que faltava para dar pra
+             confiar que o catálogo está pronto antes de perder a conexão. -->
+        <template v-else-if="sync.baixandoFotos">Baixando fotos... {{ sync.fotosBaixadas }}/{{ sync.fotosTotal }}</template>
         <template v-else-if="sync.ultimaSincronizacao">Dados atualizados {{ tempoRelativo(sync.ultimaSincronizacao) }}</template>
         <template v-else>Dados ainda não sincronizados</template>
       </span>
-      <RefreshCw :size="16" class="shrink-0 text-primary" :class="sync.sincronizando ? 'animate-spin' : ''" />
+      <RefreshCw
+        :size="16"
+        class="shrink-0 text-primary"
+        :class="sync.sincronizando || sync.baixandoFotos ? 'animate-spin' : ''"
+      />
     </button>
 
     <SectionLabel>Destaques</SectionLabel>

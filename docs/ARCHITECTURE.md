@@ -118,6 +118,16 @@ for production) — Cosmos DB is Azure-only and would break the portability
 goal. Product/map images go in S3-compatible object storage (works against
 Azure Blob Storage, AWS S3, or self-hosted MinIO without app code changes).
 
+**Not built yet — what exists instead.** `Produto.foto` is still a plain URL
+pointing at the ERP's own image host, filled in by the CSV import. Serving
+those URLs straight to the browser broke offline browsing (issue #13: a
+cross-origin image can only be cached as an opaque response, which Chrome pads
+by ~7MB each against the storage quota), so `GET /api/produtos/:id/foto` now
+fetches the ERP's image server-side, resizes it, caches the derivative in a
+`produto_fotos` table, and serves it from our own origin. That table is a cache
+keyed by the source URL, not a store of record — when object storage does land,
+the route keeps its contract and the derivative cache is what gets replaced.
+
 Schema highlights:
 - `usuarios`, `clientes`, `produtos`, `leads`, `indicacoes`,
   `orientacoes`, `programacao` — one table (or small set of tables) per

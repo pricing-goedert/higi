@@ -64,16 +64,21 @@ const semConexao = computed(() => !sync.online || sync.conectadoServidor === fal
         type="button"
         :disabled="sync.sincronizando"
         class="flex w-full items-center justify-between gap-2 rounded-field bg-bg px-3 py-2.5 text-left disabled:opacity-70"
-        @click="sync.sincronizar()"
+        @click="sync.sincronizar({ forcar: true })"
       >
         <span class="text-[12.5px] leading-snug" :class="semConexao ? 'text-danger' : 'text-primary'">
           <template v-if="sync.sincronizando">Atualizando dados...</template>
           <template v-else-if="semConexao">Sem conexão</template>
           <template v-else-if="sync.erro">{{ sync.erro }}</template>
+          <template v-else-if="sync.baixandoFotos">Baixando fotos... {{ sync.fotosBaixadas }}/{{ sync.fotosTotal }}</template>
           <template v-else-if="sync.ultimaSincronizacao">Atualizado {{ tempoRelativo(sync.ultimaSincronizacao) }}</template>
           <template v-else>Não sincronizado</template>
         </span>
-        <RefreshCw :size="15" class="shrink-0 text-primary" :class="sync.sincronizando ? 'animate-spin' : ''" />
+        <RefreshCw
+          :size="15"
+          class="shrink-0 text-primary"
+          :class="sync.sincronizando || sync.baixandoFotos ? 'animate-spin' : ''"
+        />
       </button>
     </div>
   </aside>

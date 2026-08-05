@@ -11,6 +11,7 @@ import usuariosRouter from './routes/usuarios'
 import orientacoesRouter from './routes/orientacoes'
 import leadsRouter from './routes/leads'
 import importarRouter from './routes/importar'
+import produtosRouter from './routes/produtos'
 
 export const app = express()
 
@@ -45,7 +46,9 @@ app.use('/api/clientes', crudRouter('cliente'))
 app.use('/api/categorias', crudRouter('categoria'))
 app.use('/api/grupos', crudRouter('grupo'))
 app.use('/api/tipos', crudRouter('tipo'))
-app.use('/api/produtos', crudRouter('produto'))
+// Not crudRouter directly like its siblings: produtos also serves the
+// resized product photo at /:id/foto — see routes/produtos.ts.
+app.use('/api/produtos', produtosRouter)
 app.use('/api/indicacoes', crudRouter('indicacao'))
 app.use('/api/orientacoes', orientacoesRouter)
 app.use('/api/programacao', crudRouter('programacao'))

@@ -5,6 +5,7 @@ import { Camera } from '@lucide/vue'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import SectionLabel from '@/components/ui/SectionLabel.vue'
 import { getProduto } from '@/lib/data'
+import { urlFoto } from '@/lib/fotosCache'
 import type { Produto } from '@/types/domain'
 
 const route = useRoute()
@@ -13,6 +14,10 @@ const id = computed(() => route.params.id as string)
 const produto = ref<Produto | null>(null)
 const carregando = ref(true)
 const erro = ref('')
+// A photo the warm-up never managed to cache still fails offline. Falling back
+// to the same placeholder used for products with no photo beats leaving a
+// broken 192px box on screen.
+const fotoFalhou = ref(false)
 
 onMounted(async () => {
   try {
@@ -32,7 +37,18 @@ onMounted(async () => {
     <p v-else-if="carregando" class="text-muted">Carregando...</p>
 
     <template v-else-if="produto">
-      <img v-if="produto.foto" :src="produto.foto" :alt="produto.nome" class="h-48 w-full rounded-card object-cover" />
+      <!-- produto.foto (a URL do ERP, vinda do banco) segue sendo o que diz se
+           existe foto; o src é a versão redimensionada servida pela nossa
+           própria origem, que é o que o service worker consegue guardar para
+           uso offline. Como a derivada já sai na proporção do card, o
+           object-cover encaixa exato em vez de cortar o produto. -->
+      <img
+        v-if="produto.foto && !fotoFalhou"
+        :src="urlFoto(produto.id)"
+        :alt="produto.nome"
+        class="h-48 w-full rounded-card object-cover"
+        @error="fotoFalhou = true"
+      />
       <div v-else class="flex h-48 flex-col items-center justify-center gap-2 rounded-card bg-icon-soft text-faint">
         <Camera :size="34" />
         <span class="text-[13.5px]">Foto em breve</span>

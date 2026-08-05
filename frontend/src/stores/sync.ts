@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { api } from '@/lib/api'
 import { syncAll } from '@/lib/db'
 import { enviarPendentes } from '@/lib/outbox'
-import { precarregarFotosProdutos } from '@/lib/fotosCache'
+import { baixandoFotos, fotosBaixadas, fotosTotal, precarregarFotosProdutos } from '@/lib/fotosCache'
 
 const CHAVE_ULTIMA_SINCRONIZACAO = 'higiexpo:ultima-sincronizacao'
 const INTERVALO_VERIFICACAO_MS = 30_000
@@ -36,7 +36,12 @@ export const useSyncStore = defineStore('sync', () => {
   let intervalId: ReturnType<typeof setInterval> | undefined
   let ultimaConclusao = 0
 
-  async function sincronizar() {
+  /**
+   * `forcar` distingue o rep pedindo a atualização de uma resync automática:
+   * só o pedido explícito fura a janela de 24h do passe completo de fotos
+   * (ver lib/fotosCache.ts), que é exatamente o que a issue #13 pediu.
+   */
+  async function sincronizar(opcoes: { forcar?: boolean } = {}) {
     if (sincronizando.value) return
     sincronizando.value = true
     erro.value = ''
@@ -47,7 +52,7 @@ export const useSyncStore = defineStore('sync', () => {
       // Deliberadamente não aguardado: baixar as fotos do catálogo inteiro
       // não deve atrasar o indicador de "sincronizado" nem bloquear o rep —
       // roda em segundo plano, mesmo espírito do enviarPendentes() abaixo.
-      void precarregarFotosProdutos(produtos)
+      void precarregarFotosProdutos(produtos, { forcar: opcoes.forcar })
     } catch {
       // Most commonly "no connection" — the local (possibly stale) data
       // from the last successful sync stays usable either way.
@@ -116,6 +121,13 @@ export const useSyncStore = defineStore('sync', () => {
     ultimaSincronizacao,
     online,
     conectadoServidor,
+    // Surfaced so the rep can see the photo download actually finish. Without
+    // it there was no way to tell a warm cache from a half-finished one
+    // except by going offline and finding out the hard way — which is how
+    // issue #13 was found.
+    baixandoFotos,
+    fotosBaixadas,
+    fotosTotal,
     sincronizar,
     iniciarMonitoramento,
     pararMonitoramento,

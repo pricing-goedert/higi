@@ -304,6 +304,80 @@ deploy target, not a throwaway test as `render.yaml`'s own comment
 
 ---
 
+## Issue #13 — product photos didn't survive going offline
+
+Reported from the venue: a product's photo loaded fine on wifi and vanished
+without a connection, even after the eager-caching change that was supposed to
+have downloaded the whole catalog.
+
+**Root cause — the photos were never in the cache at all.** The warm-up fetched
+the ERP's image URLs cross-origin with `mode: 'no-cors'`, so every response was
+*opaque*. Chrome pads each opaque Cache Storage entry by ~7MB against the
+origin's quota regardless of its real size, so warming ~800 photos blew the
+quota partway through; `cache.put` started throwing `QuotaExceededError` and an
+empty `catch {}` swallowed it. The app reported "sincronizado" over a
+half-empty cache and nothing measured otherwise.
+
+The proof it was absence rather than corruption: the handler is `CacheFirst`,
+so any entry — including a broken one — would have been served *online* too.
+Photos worked online, therefore the service worker was missing and falling
+through to the network.
+
+**Fix: serve the photos from our own origin.** New route
+`GET /api/produtos/:id/foto` (`backend/src/routes/produtos.ts`) reads
+`Produto.foto`, fetches it from the ERP server-side, resizes it, and returns it.
+Same-origin means non-opaque: real byte accounting, real status codes.
+
+Decisions worth recording:
+
+- **`Produto.foto` stays the source of truth.** No schema change to it, no
+  change to the ERP CSV import. The new `produto_fotos` table only caches a
+  *derivative*, and `origem_url` not matching `Produto.foto` is what
+  invalidates it — so an admin edit or a re-import still wins.
+- **Server-side derivative cache in Postgres, not just in memory.** ~25MB for
+  the full catalog on a 1GB free tier. It keeps the free-plan instance from
+  re-fetching and re-encoding 800 images per device, and means photos keep
+  working if the ERP's image host is down mid-event (the route falls back to a
+  stale derivative rather than failing).
+- **Resized to 800×468 WebP with `fit: contain` on white** (`lib/fotoDerivada.ts`).
+  Size was the reason (`PLAN.md`'s ~30MB budget), but it also fixed a framing
+  bug: the card is `object-cover`, so tall source photos were getting their top
+  and bottom cropped off. Emitting at the card's own aspect ratio makes
+  `object-cover` an exact fit instead of a crop.
+- **Auth needed no special handling** — the session is an httpOnly cookie, so a
+  plain `<img src="/api/...">` sends it. The route is `requireAuth`, not
+  admin-gated.
+- **The service worker is now the only writer to the `produto-fotos` cache.**
+  The rule matches `/api/produtos/:id/foto` instead of any image file
+  extension, and accepts only status 200 (it used to accept 0, which cached an
+  ERP 404 as a permanent empty success). `fotosCache.ts` just issues requests
+  and lets Workbox store them, so its expiration bookkeeping is accurate for
+  the first time.
+- **Warm-up state is persisted** in a new Dexie table (`fotosStatus`, schema
+  v3) instead of being fire-and-forget: an interrupted pass resumes, a failure
+  is retried up to 3 times, products with no photo are recorded once and
+  skipped, and the counts drive a `Baixando fotos... 312/806` label on the
+  existing sync button. Not being able to tell a warm cache from a
+  half-finished one is what let this ship broken in the first place.
+- **A full pass runs at most once a day**, or immediately when the rep taps
+  "Atualizar dados" — what the issue asked for. Re-requesting already-cached
+  photos on the daily pass is nearly free (CacheFirst never touches the
+  network) and is what detects entries the browser evicted.
+- **`navigator.storage.persist()`** is finally called (`main.ts`) — `PLAN.md`
+  listed it as a Phase 5 risk mitigation and it had never been implemented.
+- **One-time cleanup**: existing installs still hold the old opaque entries
+  keyed by ERP URLs, each padded to ~7MB of accounted quota. On first run after
+  this deploy, every non-same-origin key in `produto-fotos` is deleted.
+
+Tests: `backend/src/routes/produtos.test.ts` stands up a throwaway HTTP server
+as the ERP's image host so the route's real fetch path runs, and covers the
+happy path + derivative reuse, the auth gate (401 with no session, 200 for a
+logged-in non-admin), unknown product / product with no photo / unreachable
+host / non-image payload, re-derivation when `Produto.foto` changes, and the
+stale-derivative fallback.
+
+---
+
 ## What's next
 
 **Phase 8**: real content population from ERP CSVs, create real `Usuario`

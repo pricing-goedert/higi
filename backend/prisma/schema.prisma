@@ -144,7 +144,34 @@ model Produto {
   tipoId String @map("tipo_id")
   tipo   Tipo   @relation(fields: [tipoId], references: [id])
 
+  fotoDerivada ProdutoFoto?
+
   @@map("produtos")
+}
+
+// Server-side derivative of `Produto.foto`, generated on first request by
+// routes/produtos.ts. `Produto.foto` stays the source of truth — an admin
+// edit or a CSV re-import just changes it, and `origemUrl` no longer
+// matching is what invalidates this row.
+//
+// It exists because reps need every photo on their phone before the event:
+// the raw ERP images are cross-origin (so the browser can only cache them
+// as opaque responses, which Chrome pads by ~7MB each against the storage
+// quota) and unbounded in size. Serving a resized WebP from our own origin
+// fixes both, and caching the result here means the venue's 800-product
+// catalog isn't re-fetched and re-encoded per device — and keeps working if
+// the ERP's image host is unreachable mid-event.
+model ProdutoFoto {
+  produtoId    String   @id @map("produto_id")
+  origemUrl    String   @map("origem_url")
+  contentType  String   @map("content_type")
+  bytes        Bytes
+  tamanho      Int
+  atualizadoEm DateTime @updatedAt @map("atualizado_em")
+
+  produto Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+
+  @@map("produto_fotos")
 }
 
 model Indicacao {

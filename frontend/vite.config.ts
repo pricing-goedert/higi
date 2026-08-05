@@ -65,24 +65,46 @@ export default defineConfig({
         // is ever requested for Portuguese content (flagged back in Phase 4
         // Slice A) — precaching the rest wastes offline storage for nothing.
         globIgnores: ['**/inter-{cyrillic,greek,vietnamese}*'],
-        // Product photos live on the ERP's own image host, not in this
-        // build — globPatterns above can't reach them. lib/fotosCache.ts
-        // eagerly warms this same "produto-fotos" cache while online; this
-        // rule is the safety net for any photo it missed (e.g. a product
-        // added mid-event without a full resync). Matched by extension, not
-        // by host, since Produto.foto is admin-enterable and not
-        // guaranteed to stay on one vendor's bucket.
+        // Explicit rather than relying on the plugin's defaults, because the
+        // photo warm-up depends on it: the service worker is what writes to
+        // the photo cache, so on a first install it has to take control of
+        // the page that's already open instead of waiting for a reload —
+        // otherwise the very first sync (right after login, the one moment a
+        // rep reliably has connectivity) downloads everything and caches
+        // none of it.
+        clientsClaim: true,
+        skipWaiting: true,
+        // Product photos aren't in this build — globPatterns can't reach
+        // them. They come from /api/produtos/:id/foto, which resizes the
+        // ERP's original and serves it from our own origin (see
+        // backend/src/routes/produtos.ts).
+        //
+        // This used to match any image URL by file extension, back when the
+        // <img> pointed straight at the ERP's host. That was issue #13: a
+        // cross-origin image can only be cached as an opaque response, which
+        // Chrome pads by ~7MB each against the storage quota, so warming ~800
+        // photos silently hit QuotaExceededError partway through and the rest
+        // simply weren't there offline. Matching our own path instead means
+        // every entry is a real, measurable, status-carrying response.
+        //
+        // This rule is now the *only* thing that writes to this cache —
+        // lib/fotosCache.ts just issues the requests and lets the service
+        // worker store them, so Workbox's expiration bookkeeping stays
+        // accurate.
         runtimeCaching: [
           {
-            urlPattern: /\.(?:png|jpe?g|webp|gif|avif)(?:\?.*)?$/i,
+            urlPattern: /\/api\/produtos\/[^/]+\/foto$/,
             handler: 'CacheFirst',
             options: {
               cacheName: 'produto-fotos',
               expiration: {
-                maxEntries: 2000,
+                maxEntries: 1200,
                 maxAgeSeconds: 60 * 60 * 24 * 120, // 120 dias — cobre a janela do evento com folga
               },
-              cacheableResponse: { statuses: [0, 200] },
+              // Só 200. Antes aceitava 0 (resposta opaca), o que gravava um
+              // 404 do ERP como se fosse sucesso e o servia vazio para
+              // sempre — sem jeito de se recuperar sozinho.
+              cacheableResponse: { statuses: [200] },
             },
           },
         ],

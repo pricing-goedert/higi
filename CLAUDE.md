@@ -2,10 +2,10 @@
 
 Instructions for AI coding agents (Claude Code or others) working in this repository.
 
-> **Read `aPessoal/WORKFLOW.md` before your first edit.** Nothing in this repo gets
-> created, canged, or deleted without the owner's explicit permission, and every
+> **Approval rule — read before your first edit.** Nothing in this repo gets
+> created, changed, or deleted without the owner's explicit permission, and every
 > proposed change must be explained file by file, in detail, *before* it is
-> applied. That document is binding and takes precedence over any inclination to
+> applied. This rule is binding and takes precedence over any inclination to
 > "just fix it".
 
 ## What this repo is
@@ -23,10 +23,6 @@ technical decisions and their reasoning.
   **no JavaScript logic and no backend** on purpose — it exists purely so the
   real rebuild has an exact visual target to implement against. Copy the CSS
   values and markup patterns from it; do not build features inside it.
-- `aPessoal/` — the owner's personal, git-ignored working folder. It holds
-  `WORKFLOW.md`: **the approval + explain-in-detail rules for making any
-  change — read it first.** Nothing in `aPessoal/` is tracked by git; don't
-  expect it in a fresh clone, and don't put app code there.
 - `docs/` — `ARCHITECTURE.md` (stack decisions and why), `SPECS.md`
   (functional spec), `PLAN.md` (phased build order and done-when criteria),
   `PROGRESS.md` (running log of what's actually been built and the

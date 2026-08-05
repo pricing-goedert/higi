@@ -19,6 +19,21 @@ export interface LeadPendente extends NovoLead {
   criadoEm: string
 }
 
+/**
+ * Per-product outcome of the photo warm-up (see lib/fotosCache.ts). Kept in
+ * IndexedDB rather than in memory so a pass that gets interrupted — app
+ * backgrounded, connection dropped, tab discarded — resumes instead of
+ * starting over, and so a photo that failed once is actually retried later.
+ * Not knowing any of this is why issue #13 could only be guessed at.
+ */
+export interface FotoStatus {
+  produtoId: string
+  /** `sem-foto` is terminal: the product has no `foto` in the database. */
+  estado: 'ok' | 'sem-foto' | 'falhou'
+  tentativas: number
+  atualizadoEm: string
+}
+
 class HigiexpoDB extends Dexie {
   usuarios!: Table<Usuario, string>
   clientes!: Table<Cliente, string>
@@ -31,6 +46,7 @@ class HigiexpoDB extends Dexie {
   programacao!: Table<Programacao, string>
   leadsOutbox!: Table<LeadPendente, string>
   leadsSincronizados!: Table<Lead, string>
+  fotosStatus!: Table<FotoStatus, string>
 
   constructor() {
     super('higiexpo')
@@ -60,6 +76,20 @@ class HigiexpoDB extends Dexie {
       programacao: 'id, dia',
       leadsOutbox: 'clientUuid',
       leadsSincronizados: 'id, capturadoPorId',
+    })
+    this.version(3).stores({
+      usuarios: 'id',
+      clientes: 'id, cnpj',
+      categorias: 'id',
+      grupos: 'id, categoriaId',
+      tipos: 'id, categoriaId, grupoId',
+      produtos: 'id, tipoId, codigo',
+      indicacoes: 'id, categoria',
+      orientacoes: 'id',
+      programacao: 'id, dia',
+      leadsOutbox: 'clientUuid',
+      leadsSincronizados: 'id, capturadoPorId',
+      fotosStatus: 'produtoId, estado',
     })
   }
 }
