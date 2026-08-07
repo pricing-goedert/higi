@@ -9,7 +9,14 @@ withDefaults(
     title: string
     subtitle?: string
     avatarNome?: string
-    /** Bare icon (design-frame's catalog/hub rows) — an alternative to avatarNome's initials circle. */
+    /**
+     * Bare icon (design-frame's catalog/hub rows) — an alternative to avatarNome's initials circle.
+     *
+     * Pintado em text-primary, não text-ink: sem o círculo de fundo do Avatar, o
+     * azul é o que separa o ícone do título ao lado (também text-ink) e o mantém
+     * no mesmo padrão dos chips do TileCard/MenuRow. É o que o design-frame faz
+     * em indicacoes.html, onde estes mesmos ícones vivem num .icon-circle azul.
+     */
     icon?: Component
     disabled?: boolean
   }>(),
@@ -25,7 +32,7 @@ withDefaults(
     :class="disabled ? 'opacity-55' : 'active:opacity-80'"
   >
     <Avatar v-if="avatarNome" :nome="avatarNome" />
-    <component :is="icon" v-else-if="icon" :size="24" class="shrink-0 text-ink" />
+    <component :is="icon" v-else-if="icon" :size="24" class="shrink-0 text-primary" />
     <div class="min-w-0 flex-1">
       <div class="truncate text-[15.5px] font-semibold text-ink">{{ title }}</div>
       <div v-if="subtitle" class="mt-0.5 truncate text-[13.5px] text-muted">{{ subtitle }}</div>

@@ -1,15 +1,20 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import BottomNav from '@/components/layout/BottomNav.vue'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useSyncStore } from '@/stores/sync'
 import { enviarPendentes } from '@/lib/outbox'
+import { useTransicaoTela } from '@/composables/useTransicaoTela'
 
 const route = useRoute()
+const router = useRouter()
 const auth = useAuthStore()
 const sync = useSyncStore()
+
+// Sentido do deslize entre as abas da barra inferior — ver o composable.
+const transicao = useTransicaoTela(router)
 
 // Fires on initial load if a session was already restored, and again right
 // after a fresh login — the one moment reps are expected to have reliable
@@ -55,8 +60,25 @@ onUnmounted(() => sync.pararMonitoramento())
   <template v-else>
     <AppSidebar />
     <div class="mx-auto min-h-screen max-w-shell bg-bg shadow-shell lg:max-w-none lg:pl-64 lg:shadow-none">
-      <div class="pb-24 lg:mx-auto lg:max-w-5xl lg:px-6 lg:pb-12">
-        <RouterView />
+      <!-- overflow-x-clip (e não -hidden) porque a tela que entra/sai fica
+           deslocada horizontalmente por uns instantes e alargaria a área de
+           rolagem: `clip` corta isso sem criar um contêiner de rolagem, que é
+           o que quebraria o `sticky top-0` do AppHeader dentro das telas. -->
+      <div class="overflow-x-clip pb-24 lg:mx-auto lg:max-w-5xl lg:px-6 lg:pb-12">
+        <RouterView v-slot="{ Component }">
+          <!-- out-in: a tela que sai termina antes de a próxima entrar, então
+               nenhuma das duas precisa de position:absolute e a rolagem normal
+               da página segue intacta. -->
+          <Transition :name="transicao" mode="out-in">
+            <!-- A div existe porque <Transition> só anima um único nó-elemento
+                 raiz, e as telas são fragmentos (HomeView, por exemplo, é
+                 cabeçalho + corpo lado a lado). Envolver aqui evita ter de dar
+                 uma raiz artificial a cada uma das ~25 views. -->
+            <div :key="route.name">
+              <component :is="Component" />
+            </div>
+          </Transition>
+        </RouterView>
       </div>
       <BottomNav />
     </div>

@@ -143,7 +143,7 @@ async function salvar() {
       {{ leadsPendentes }} lead{{ leadsPendentes === 1 ? '' : 's' }} pendente{{ leadsPendentes === 1 ? '' : 's' }} de sincronização
     </p>
 
-    <p v-if="mensagem" class="rounded-field bg-produtos-soft px-3.5 py-2.5 text-[14px] font-medium text-produtos">
+    <p v-if="mensagem" class="rounded-field bg-success-soft px-3.5 py-2.5 text-[14px] font-medium text-success">
       {{ mensagem }}
     </p>
     <p v-if="erro" class="text-danger">{{ erro }}</p>

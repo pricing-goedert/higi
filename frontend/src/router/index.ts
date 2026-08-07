@@ -4,6 +4,13 @@ import './types'
 
 const router = createRouter({
   history: createWebHistory(),
+  // Sem isto o navegador mantém a rolagem ao trocar de tela, e a aba nova
+  // abria no meio da página — passa a incomodar de verdade agora que a troca
+  // é animada, porque a tela entra deslizando já rolada. `savedPosition`
+  // preserva o comportamento esperado do voltar/avançar.
+  scrollBehavior(_para, _de, posicaoSalva) {
+    return posicaoSalva ?? { top: 0 }
+  },
   routes: [
     {
       path: '/login',

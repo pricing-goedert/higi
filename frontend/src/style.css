@@ -21,14 +21,13 @@
   --color-faint: #94a3b8; /* --text3 */
   --color-icon-soft: #e9f0f5; /* --icon-circle */
   --color-danger: #ef4444; /* --red, validation states */
-  /* Home screen's 3 menu sections — hardcoded in design-frame's index.html,
-     not the (unused) --green/--orange root vars. */
-  --color-comercial: #143c52;
-  --color-comercial-soft: #e9f0f5;
-  --color-produtos: #15803d;
-  --color-produtos-soft: #e5f6ec;
-  --color-conteudo: #b45309;
-  --color-conteudo-soft: #fdf1df;
+  /* Confirmação de cadastro (LeadsView). Era --color-produtos/-soft, uma das 3
+     cores por seção que a Home herdou do design-frame (comercial azul, produtos
+     verde, conteúdo âmbar). Os ícones da Home passaram todos ao azul de
+     --color-icon-soft/--color-primary, e sobrou este verde — que na prática
+     nunca foi "cor de Produtos", e sim a de mensagem de sucesso. */
+  --color-success: #15803d;
+  --color-success-soft: #e5f6ec;
 
   --font-sans: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
@@ -70,4 +69,60 @@ input:-webkit-autofill:focus {
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* Transição direcional entre as abas da barra inferior (App.vue escolhe o nome
+   via composables/useTransicaoTela.ts). Saída mais curta que a entrada porque
+   com mode="out-in" as duas somam: o total fica em ~320ms, na faixa do push
+   nativo de iOS, sem parecer que a interface travou.
+
+   Os 32px de deslocamento são suficientes para o olho ler o sentido; mais que
+   isso, com a tela toda opaca ao mesmo tempo, começa a parecer salto em vez de
+   deslize. */
+.tela-esquerda-enter-active,
+.tela-direita-enter-active {
+  transition:
+    transform 200ms ease-out,
+    opacity 200ms ease-out;
+}
+.tela-esquerda-leave-active,
+.tela-direita-leave-active {
+  transition:
+    transform 120ms ease-in,
+    opacity 120ms ease-in;
+}
+
+/* Aba à direita da atual: a nova entra pela direita. */
+.tela-esquerda-enter-from {
+  transform: translateX(32px);
+  opacity: 0;
+}
+.tela-esquerda-leave-to {
+  transform: translateX(-32px);
+  opacity: 0;
+}
+
+/* Aba à esquerda da atual: o inverso. */
+.tela-direita-enter-from {
+  transform: translateX(-32px);
+  opacity: 0;
+}
+.tela-direita-leave-to {
+  transform: translateX(32px);
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tela-esquerda-enter-active,
+  .tela-esquerda-leave-active,
+  .tela-direita-enter-active,
+  .tela-direita-leave-active {
+    transition-duration: 1ms;
+  }
+  .tela-esquerda-enter-from,
+  .tela-esquerda-leave-to,
+  .tela-direita-enter-from,
+  .tela-direita-leave-to {
+    transform: none;
+  }
 }

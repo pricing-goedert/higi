@@ -10,6 +10,9 @@ const leadsPendentes = useLeadsPendentesCount()
 // against docs/design-frame/index.html) where a design-frame equivalent
 // exists; Perfil has no design-frame precedent (added post-launch), so it
 // just uses a plain profile icon.
+//
+// A *ordem* aqui tem de bater com lib/navTabs.ts — é ela que define para que
+// lado a tela desliza na troca de aba.
 const abas = [
   { nome: 'Home', rota: 'home', icone: House },
   { nome: 'Repres.', rota: 'representantes', icone: Briefcase },

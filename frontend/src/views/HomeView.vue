@@ -1,12 +1,29 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Briefcase, Calendar, Info, LayoutGrid, Map, Package, RefreshCw, Search, Settings, Star, UserPlus } from '@lucide/vue'
+import { Calendar, Info, Map, Package, RefreshCw, Search, Settings, Star } from '@lucide/vue'
 import SectionLabel from '@/components/ui/SectionLabel.vue'
-import MenuCard from '@/components/ui/MenuCard.vue'
+import HeroCard from '@/components/ui/HeroCard.vue'
+import MenuRow from '@/components/ui/MenuRow.vue'
+import TileCard from '@/components/ui/TileCard.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useSyncStore } from '@/stores/sync'
 import { somenteDigitos, tempoRelativo } from '@/lib/format'
+
+// Fotos do estande, importadas (e não referenciadas por caminho) para o Vite
+// as versionar no build e o precache do workbox as pegar junto com o resto do
+// shell — o glob de vite.config.ts já inclui jpg.
+//
+// JPEG a 1200px de largura, não os PNG originais de 1535px/~1,8 MB: PNG é
+// formato para gráfico com área plana, e usá-lo em fotografia custava 5,3 MB
+// dos 7,3 MB do precache — download que o rep paga na rede da feira só para
+// preencher um card de 128px de altura. 1200px cobre um card de 430px em tela
+// de até ~2,8x, que é onde a foto aparece nítida e em cores no estado ativo.
+// Os PNG seguem na pasta como original de trabalho, sem entrar no bundle
+// (o Vite só emite o que é importado).
+import fotoRepresentante from '@/components/images/pesquisa_representante.jpg'
+import fotoCliente from '@/components/images/pesquisa_cliente.jpg'
+import fotoLead from '@/components/images/cadastro_lead.jpg'
 
 const router = useRouter()
 const buscaGlobal = ref('')
@@ -31,47 +48,60 @@ function buscar() {
   }
 }
 
-const slides = [
-  { to: { name: 'mapa' }, icon: Map, titulo: 'Mapa da Feira 2026', texto: 'Confira a localização dos estandes' },
-  { to: { name: 'leads' }, icon: UserPlus, titulo: 'Cadastre um Lead', texto: 'Registre novos clientes durante a feira' },
-  { to: { name: 'programacao' }, icon: Calendar, titulo: 'Programação da Feira', texto: 'Palestras e atrações do dia' },
+// "Consulta de Produtos" e "Programação da Feira" saíram da lista linear: são
+// os dois que o rep abre de pé, andando pela feira, e como linha de menu
+// ficavam com o mesmo peso de Orientações. Viram dois cards em coluna, um
+// degrau abaixo dos Destaques.
+const cardsSecundarios = [
+  { to: { name: 'produtos' }, icon: Package, label: 'Consulta de Produtos' },
+  { to: { name: 'programacao' }, icon: Calendar, label: 'Programação da Feira' },
 ]
 
-const carrosselRef = ref<HTMLElement | null>(null)
-const slideAtivo = ref(0)
-
-function aoRolar() {
-  const el = carrosselRef.value
-  if (!el || el.clientWidth === 0) return
-  slideAtivo.value = Math.round(el.scrollLeft / el.clientWidth)
-}
+// O resto segue em lista agrupada. Continua com ícone (é o que faz uma lista
+// dessas ser varrida com o olho em vez de lida linha a linha), agora todos no
+// mesmo azul: as cores por assunto que a Home herdou do design-frame — verde
+// para Produtos, âmbar para Conteúdo — agrupavam visualmente coisas que os
+// próprios rótulos já separam, e eram a única exceção ao azul do app.
+const atalhos = [
+  { to: { name: 'mapa' }, icon: Map, label: 'Mapa da Feira' },
+  { to: { name: 'indicacoes' }, icon: Star, label: 'Indicações' },
+  { to: { name: 'orientacoes' }, icon: Info, label: 'Orientações' },
+]
 </script>
 
 <template>
-  <div class="rounded-b-hero bg-primary px-4 pb-9 pt-7 text-white">
-    <h1 class="text-[20px] font-bold">GoHub Higiexpo</h1>
-    <p class="mt-1 text-[14px] text-white/75">Nossa central de atendimento Goedert na palma da sua mão</p>
-  </div>
+  <!-- Cabeçalho: título, subtítulo, busca e status de sincronização moram todos
+       dentro do mesmo bloco primário. Antes a busca era um cartão solto puxado
+       para cima com -mt-7, atravessando a borda arredondada do bloco — em tela
+       estreita ela aparecia cortada. -->
+  <header class="rounded-b-hero bg-primary px-4 pb-4 pt-7 text-white">
+    <h1 class="text-[21px] font-bold leading-tight">GoHub Higiexpo</h1>
+    <p class="mt-1 text-[13.5px] leading-snug text-white/70">
+      Nossa central de atendimento Goedert na palma da sua mão
+    </p>
 
-  <form class="-mt-7 px-4" @submit.prevent="buscar">
-    <div class="flex h-14 items-center gap-2.5 rounded-search bg-card px-4 shadow-search">
-      <Search :size="20" class="shrink-0 text-faint" />
-      <input
-        v-model="buscaGlobal"
-        placeholder="Buscar representante, cliente..."
-        class="w-full bg-transparent text-ink outline-hidden placeholder:text-faint"
-      />
-    </div>
-  </form>
+    <form class="mt-4" @submit.prevent="buscar">
+      <div class="flex h-14 items-center gap-2.5 rounded-search bg-card px-4 shadow-search">
+        <Search :size="20" class="shrink-0 text-faint" />
+        <input
+          v-model="buscaGlobal"
+          enterkeyhint="search"
+          autocomplete="off"
+          placeholder="Buscar representante, cliente..."
+          class="w-full min-w-0 bg-transparent text-ink outline-hidden placeholder:text-faint"
+        />
+      </div>
+    </form>
 
-  <div class="px-4">
+    <!-- Dentro do cabeçalho, e não no corpo da página, para o corpo começar
+         direto nos Destaques. No desktop o AppSidebar tem o seu próprio. -->
     <button
       type="button"
       :disabled="sync.sincronizando"
-      class="mb-4 mt-4 flex w-full items-center justify-between rounded-field bg-icon-soft px-3.5 py-2.5 text-left disabled:opacity-70 lg:hidden"
+      class="mt-3 flex w-full items-center justify-between gap-2 rounded-field bg-white/10 px-3.5 py-2 text-left disabled:opacity-70 lg:hidden"
       @click="sync.sincronizar({ forcar: true })"
     >
-      <span class="text-[13px]" :class="semConexao ? 'text-danger' : 'text-primary'">
+      <span class="text-[12.5px]" :class="semConexao ? 'text-red-300' : 'text-white/70'">
         <template v-if="sync.sincronizando">Atualizando dados...</template>
         <template v-else-if="semConexao">Sem conexão</template>
         <template v-else-if="sync.erro">{{ sync.erro }}</template>
@@ -83,84 +113,61 @@ function aoRolar() {
         <template v-else>Dados ainda não sincronizados</template>
       </span>
       <RefreshCw
-        :size="16"
-        class="shrink-0 text-primary"
+        :size="15"
+        class="shrink-0 text-white/70"
         :class="sync.sincronizando || sync.baixandoFotos ? 'animate-spin' : ''"
       />
     </button>
+  </header>
 
+  <div class="px-4 pt-5 pb-2">
+    <!-- Os três recursos que existem para ser usados de pé, no estande. São a
+         peça central da tela: full-width, altura de sobra para o polegar, e
+         Leads com mais altura ainda porque é o único dos três que gera dado
+         novo. Empilhados em vez de em grade — grade de três em 460px produz
+         exatamente o card espremido que essa tela tinha antes. -->
     <SectionLabel>Destaques</SectionLabel>
-    <!-- Swipeable one-at-a-time carousel on phones; on desktop there's room to
-         show all three at once, so the scroll-snap row becomes a plain grid
-         and the dot indicators below are hidden. -->
-    <div
-      ref="carrosselRef"
-      class="no-scrollbar flex snap-x snap-mandatory gap-3.5 overflow-x-auto lg:grid lg:grid-cols-3 lg:overflow-x-visible"
-      @scroll="aoRolar"
-    >
-      <RouterLink
-        v-for="slide in slides"
-        :key="slide.titulo"
-        :to="slide.to"
-        class="flex w-full shrink-0 snap-start flex-col gap-1.5 rounded-card bg-primary p-5 text-white lg:w-auto"
-      >
-        <component :is="slide.icon" :size="28" class="text-white/90" />
-        <h3 class="text-[15.5px] font-semibold">{{ slide.titulo }}</h3>
-        <p class="text-[13px] text-white/75">{{ slide.texto }}</p>
-        <small class="mt-1 text-[11.5px] text-white/55">Toque para abrir</small>
-      </RouterLink>
+    <div class="flex flex-col gap-3 lg:grid lg:grid-cols-3">
+      <HeroCard
+        :to="{ name: 'representantes' }"
+        titulo="Pesquisa de Representante"
+        :imagem="fotoRepresentante"
+      />
+      <HeroCard :to="{ name: 'clientes' }" titulo="Pesquisa de Cliente" :imagem="fotoCliente" />
+      <HeroCard :to="{ name: 'leads' }" titulo="Cadastro de Leads" :imagem="fotoLead" principal />
     </div>
-    <div class="mt-3 flex justify-center gap-1.5 lg:hidden">
-      <div
-        v-for="(slide, i) in slides"
-        :key="slide.titulo"
-        class="h-1.5 w-1.5 rounded-full transition-colors"
-        :class="i === slideAtivo ? 'bg-primary' : 'bg-divider'"
+
+    <SectionLabel>Mais recursos</SectionLabel>
+    <div class="grid grid-cols-2 gap-3">
+      <TileCard
+        v-for="card in cardsSecundarios"
+        :key="card.label"
+        :to="card.to"
+        :icon="card.icon"
+        :label="card.label"
       />
     </div>
 
-    <SectionLabel dot-class="bg-comercial">Comercial</SectionLabel>
-    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-      <MenuCard :to="{ name: 'representantes' }" :icon="Briefcase" icon-class="bg-comercial-soft text-comercial">
-        Pesquisa de<br />Representante
-      </MenuCard>
-      <MenuCard :to="{ name: 'clientes' }" :icon="LayoutGrid" icon-class="bg-comercial-soft text-comercial">
-        Pesquisa de<br />Cliente
-      </MenuCard>
-      <MenuCard :to="{ name: 'leads' }" :icon="UserPlus" icon-class="bg-comercial-soft text-comercial">
-        Cadastro de<br />Leads
-      </MenuCard>
-    </div>
-
-    <SectionLabel dot-class="bg-produtos">Produtos</SectionLabel>
-    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-      <MenuCard :to="{ name: 'produtos' }" :icon="Package" icon-class="bg-produtos-soft text-produtos" full-width>
-        Consulta de Produtos
-      </MenuCard>
-    </div>
-
-    <SectionLabel dot-class="bg-conteudo">Conteúdo</SectionLabel>
-    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4 pb-2">
-      <MenuCard :to="{ name: 'programacao' }" :icon="Calendar" icon-class="bg-conteudo-soft text-conteudo">
-        Programação<br />da Feira
-      </MenuCard>
-      <MenuCard :to="{ name: 'mapa' }" :icon="Map" icon-class="bg-conteudo-soft text-conteudo">
-        Mapa da<br />Feira
-      </MenuCard>
-      <MenuCard :to="{ name: 'indicacoes' }" :icon="Star" icon-class="bg-conteudo-soft text-conteudo">
-        Indicações
-      </MenuCard>
-      <MenuCard :to="{ name: 'orientacoes' }" :icon="Info" icon-class="bg-conteudo-soft text-conteudo">
-        Orientações
-      </MenuCard>
+    <!-- mt-3 e não um SectionLabel novo: é a continuação de "Mais recursos", e
+         um rótulo aqui criaria hierarquia que não existe. -->
+    <div class="mt-3 divide-y divide-divider overflow-hidden rounded-card bg-card shadow-card">
+      <MenuRow
+        v-for="atalho in atalhos"
+        :key="atalho.label"
+        :to="atalho.to"
+        :icon="atalho.icon"
+        :label="atalho.label"
+      />
     </div>
 
     <template v-if="auth.usuario?.isAdmin">
-      <SectionLabel dot-class="bg-comercial">Administração</SectionLabel>
-      <div class="grid grid-cols-2 gap-4 lg:grid-cols-4 pb-2">
-        <MenuCard :to="{ name: 'admin-usuarios' }" :icon="Settings" icon-class="bg-comercial-soft text-comercial" full-width>
-          Gestão de Conteúdo
-        </MenuCard>
+      <SectionLabel>Administração</SectionLabel>
+      <div class="divide-y divide-divider overflow-hidden rounded-card bg-card shadow-card">
+        <MenuRow
+          :to="{ name: 'admin-usuarios' }"
+          :icon="Settings"
+          label="Gestão de Conteúdo"
+        />
       </div>
     </template>
   </div>

@@ -15,6 +15,9 @@ const leadsPendentes = useLeadsPendentesCount()
 // be added to the other. Kept as separate components rather than one
 // responsive component because the layouts share no markup: a horizontal
 // icon-over-label strip versus a vertical icon-beside-label list.
+//
+// A ordem também está em lib/navTabs.ts, que é de onde sai o sentido da
+// transição entre telas — mudar aqui pede mudar lá.
 const abas = [
   { nome: 'Home', rota: 'home', icone: House },
   { nome: 'Representantes', rota: 'representantes', icone: Briefcase },

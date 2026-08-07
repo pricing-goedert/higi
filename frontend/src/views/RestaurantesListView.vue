@@ -39,7 +39,10 @@ onMounted(async () => {
         :to="{ name: 'restaurante-detalhe', params: { id: restaurante.id } }"
         class="mb-2.5 flex items-center gap-3.5 rounded-card bg-card p-[18px] shadow-card active:opacity-80 lg:mb-0"
       >
-        <Coffee :size="24" class="shrink-0 text-ink" />
+        <!-- text-primary para bater com o ícone do RowCard, que é o que desenha
+             a linha equivalente em Indicações. Esta lista não usa o RowCard
+             porque a segunda linha é chip + distância, não um subtítulo. -->
+        <Coffee :size="24" class="shrink-0 text-primary" />
         <div class="min-w-0 flex-1">
           <div class="truncate text-[15.5px] font-semibold text-ink">{{ restaurante.nome }}</div>
           <div class="mt-1.5 flex items-center gap-2">
