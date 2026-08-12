@@ -1,9 +1,11 @@
-import 'dotenv/config'
+import './env'
+
 import path from 'node:path'
 import fs from 'node:fs'
 import express from 'express'
 import cookieParser from 'cookie-parser'
 import compression from 'compression'
+import helmet from 'helmet'
 
 import { crudRouter } from './lib/crudRouter'
 import authRouter from './routes/auth'
@@ -23,6 +25,11 @@ export const app = express()
 // `1` trusts exactly one hop (the platform's own proxy), not an arbitrary
 // chain a client could spoof.
 app.set('trust proxy', 1)
+
+// Defaults only: no external scripts/fonts/CDNs anywhere in the frontend, so
+// helmet's default CSP (which already allows the inline splash-screen
+// <style> via 'unsafe-inline' on style-src) needs no tuning here.
+app.use(helmet())
 
 // Every syncAll() resync re-fetches the full JSON list of every collection —
 // they compress very well given how repetitive the shape is, so this

@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { z } from 'zod'
 import { Prisma } from '@prisma/client'
 import { prisma } from '../lib/prisma'
 import { requireAuth } from '../middleware/auth'
@@ -6,18 +7,42 @@ import { ah } from '../lib/asyncHandler'
 
 const router = Router()
 
-const CAMPOS_OBRIGATORIOS = ['clientUuid', 'tipo', 'cnpj', 'razaoSocial', 'contato', 'telefone'] as const
+const CAMPOS_OBRIGATORIOS_LABEL: Record<string, string> = {
+  clientUuid: 'clientUuid',
+  tipo: 'tipo',
+  cnpj: 'cnpj',
+  razaoSocial: 'razaoSocial',
+  contato: 'contato',
+  telefone: 'telefone',
+}
+
+const leadSchema = z.object({
+  clientUuid: z.string().min(1),
+  tipo: z.string().min(1),
+  cnpj: z.string().min(1),
+  razaoSocial: z.string().min(1),
+  contato: z.string().min(1),
+  telefone: z.string().min(1),
+  cep: z.string().nullish(),
+  endereco: z.string().nullish(),
+  email: z.string().nullish(),
+  observacoes: z.string().nullish(),
+  clienteId: z.string().nullish(),
+})
 
 router.post(
   '/',
   requireAuth,
   ah(async (req, res) => {
-    const dados = req.body ?? {}
-    const faltando = CAMPOS_OBRIGATORIOS.filter((campo) => !dados[campo])
-    if (faltando.length > 0) {
+    const parsed = leadSchema.safeParse(req.body ?? {})
+    if (!parsed.success) {
+      const faltando = [...new Set(parsed.error.issues.map((issue) => String(issue.path[0])))].map(
+        (campo) => CAMPOS_OBRIGATORIOS_LABEL[campo] ?? campo,
+      )
       res.status(400).json({ error: `Campos obrigatórios ausentes: ${faltando.join(', ')}` })
       return
     }
+    const dados = parsed.data
 
     try {
       const lead = await prisma.lead.create({

@@ -28,7 +28,7 @@ withDefaults(
   <component
     :is="disabled ? 'div' : 'RouterLink'"
     :to="disabled ? undefined : to"
-    class="mb-2.5 flex items-center gap-3.5 rounded-card bg-card p-[18px] shadow-card"
+    class="mb-2.5 flex items-center gap-3.5 rounded-card bg-card p-18px shadow-card"
     :class="disabled ? 'opacity-55' : 'active:opacity-80'"
   >
     <Avatar v-if="avatarNome" :nome="avatarNome" />
