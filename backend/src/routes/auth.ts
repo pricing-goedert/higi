@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import bcrypt from 'bcrypt'
 import rateLimit from 'express-rate-limit'
+import { z } from 'zod'
 import { Prisma } from '@prisma/client'
 import { prisma } from '../lib/prisma'
 import { COOKIE_NAME, signToken } from '../lib/auth'
@@ -12,8 +13,14 @@ const router = Router()
 
 const SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000
 
+const loginSchema = z.object({
+  email: z.string().min(1, 'Email é obrigatório'),
+  password: z.string().min(1, 'Senha é obrigatória'),
+})
+
 // Self-service profile edit: only these — a rep can change their own contact
 // details, never isAdmin/superiorId/cnpj/tipoRepresentante (those stay
+
 // admin-only, via the Usuarios CMS tab, to prevent self-escalation).
 const CAMPOS_EDITAVEIS_PELO_PROPRIO = ['nome', 'email', 'telefone', 'whatsapp', 'endereco', 'cidade', 'uf', 'pais'] as const
 
@@ -25,11 +32,12 @@ router.post(
   '/login',
   loginLimiter,
   ah(async (req, res) => {
-    const { email, password } = req.body ?? {}
-    if (!email || !password) {
+    const parsed = loginSchema.safeParse(req.body)
+    if (!parsed.success) {
       res.status(400).json({ error: 'Email e senha são obrigatórios' })
       return
     }
+    const { email, password } = parsed.data
 
     const usuario = await prisma.usuario.findUnique({ where: { email } })
     const senhaValida = usuario ? await bcrypt.compare(password, usuario.passwordHash) : false

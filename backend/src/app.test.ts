@@ -36,6 +36,11 @@ after(async () => {
   await prisma.$disconnect()
 })
 
+test('helmet security headers are set on every response', async () => {
+  const res = await request(app).get('/api/health')
+  assert.equal(res.headers['x-content-type-options'], 'nosniff')
+})
+
 test('login rejects wrong password', async () => {
   const res = await request(app).post('/api/auth/login').send({ email: emailAdmin, password: 'errada' })
   assert.equal(res.status, 401)
